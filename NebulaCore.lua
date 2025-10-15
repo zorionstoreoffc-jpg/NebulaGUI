@@ -1,7 +1,6 @@
 -- Nebula UI Library v2.0
--- Advanced Roblox GUI Library with Mobile Support
--- Created by: AI Assistant
--- Last Updated: 2024
+-- Complete Roblox GUI Framework with Mobile Support
+-- GitHub: https://github.com/zorionstoreoffc-jpg/NebulaGUI
 
 local NebulaUI = {}
 NebulaUI.__index = NebulaUI
@@ -24,109 +23,74 @@ local NebulaUI_Internal = {
     Themes = {},
     Configs = {},
     MobileEnabled = UserInputService.TouchEnabled,
-    DebugMode = false
+    DebugMode = false,
+    Version = "2.0.1"
 }
 
--- Default theme configurations
-local DEFAULT_THEMES = {
+-- Enhanced Nebula Color Themes
+local NEBULA_THEMES = {
     Default = {
-        Background = Color3.fromRGB(15, 15, 30),
-        Foreground = Color3.fromRGB(30, 30, 60),
-        Accent = Color3.fromRGB(138, 43, 226),
-        Accent2 = Color3.fromRGB(0, 191, 255),
-        AccentGradient = Color3.fromRGB(147, 112, 219),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextDark = Color3.fromRGB(200, 200, 200),
-        Success = Color3.fromRGB(46, 204, 113),
-        Warning = Color3.fromRGB(241, 196, 15),
-        Error = Color3.fromRGB(231, 76, 60),
-        Border = Color3.fromRGB(50, 50, 90)
+        BACKGROUND = Color3.fromRGB(15, 15, 30),
+        FRAME = Color3.fromRGB(30, 30, 60),
+        ACCENT = Color3.fromRGB(138, 43, 226),
+        ACCENT2 = Color3.fromRGB(0, 191, 255),
+        ACCENT3 = Color3.fromRGB(147, 112, 219),
+        TEXT = Color3.fromRGB(255, 255, 255),
+        BUTTON = Color3.fromRGB(50, 50, 90),
+        BUTTON_HOVER = Color3.fromRGB(70, 70, 120),
+        SUCCESS = Color3.fromRGB(46, 204, 113),
+        WARNING = Color3.fromRGB(241, 196, 15),
+        ERROR = Color3.fromRGB(231, 76, 60),
+        BORDER = Color3.fromRGB(60, 60, 100)
     },
     Dark = {
-        Background = Color3.fromRGB(20, 20, 20),
-        Foreground = Color3.fromRGB(30, 30, 30),
-        Accent = Color3.fromRGB(86, 156, 214),
-        Accent2 = Color3.fromRGB(66, 135, 245),
-        AccentGradient = Color3.fromRGB(106, 176, 234),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextDark = Color3.fromRGB(180, 180, 180),
-        Success = Color3.fromRGB(56, 214, 123),
-        Warning = Color3.fromRGB(251, 206, 25),
-        Error = Color3.fromRGB(241, 86, 70),
-        Border = Color3.fromRGB(60, 60, 60)
+        BACKGROUND = Color3.fromRGB(10, 10, 15),
+        FRAME = Color3.fromRGB(25, 25, 35),
+        ACCENT = Color3.fromRGB(86, 156, 214),
+        ACCENT2 = Color3.fromRGB(106, 176, 234),
+        ACCENT3 = Color3.fromRGB(126, 196, 254),
+        TEXT = Color3.fromRGB(240, 240, 240),
+        BUTTON = Color3.fromRGB(45, 45, 55),
+        BUTTON_HOVER = Color3.fromRGB(65, 65, 75),
+        SUCCESS = Color3.fromRGB(56, 214, 123),
+        WARNING = Color3.fromRGB(251, 206, 25),
+        ERROR = Color3.fromRGB(241, 86, 70),
+        BORDER = Color3.fromRGB(50, 50, 70)
     },
-    Light = {
-        Background = Color3.fromRGB(245, 245, 245),
-        Foreground = Color3.fromRGB(255, 255, 255),
-        Accent = Color3.fromRGB(0, 122, 255),
-        Accent2 = Color3.fromRGB(90, 200, 250),
-        AccentGradient = Color3.fromRGB(100, 210, 255),
-        Text = Color3.fromRGB(0, 0, 0),
-        TextDark = Color3.fromRGB(80, 80, 80),
-        Success = Color3.fromRGB(52, 199, 89),
-        Warning = Color3.fromRGB(255, 149, 0),
-        Error = Color3.fromRGB(255, 59, 48),
-        Border = Color3.fromRGB(220, 220, 220)
-    },
-    Crimson = {
-        Background = Color3.fromRGB(20, 15, 15),
-        Foreground = Color3.fromRGB(40, 20, 20),
-        Accent = Color3.fromRGB(220, 20, 60),
-        Accent2 = Color3.fromRGB(180, 30, 30),
-        AccentGradient = Color3.fromRGB(240, 50, 80),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextDark = Color3.fromRGB(200, 180, 180),
-        Success = Color3.fromRGB(50, 200, 100),
-        Warning = Color3.fromRGB(255, 165, 0),
-        Error = Color3.fromRGB(220, 20, 60),
-        Border = Color3.fromRGB(80, 40, 40)
-    },
-    Ocean = {
-        Background = Color3.fromRGB(15, 30, 45),
-        Foreground = Color3.fromRGB(25, 50, 75),
-        Accent = Color3.fromRGB(0, 150, 199),
-        Accent2 = Color3.fromRGB(72, 202, 228),
-        AccentGradient = Color3.fromRGB(100, 220, 255),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextDark = Color3.fromRGB(180, 220, 255),
-        Success = Color3.fromRGB(46, 204, 113),
-        Warning = Color3.fromRGB(241, 196, 15),
-        Error = Color3.fromRGB(231, 76, 60),
-        Border = Color3.fromRGB(40, 100, 150)
-    },
-    Forest = {
-        Background = Color3.fromRGB(15, 30, 20),
-        Foreground = Color3.fromRGB(25, 50, 35),
-        Accent = Color3.fromRGB(76, 175, 80),
-        Accent2 = Color3.fromRGB(56, 142, 60),
-        AccentGradient = Color3.fromRGB(105, 200, 110),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextDark = Color3.fromRGB(180, 220, 180),
-        Success = Color3.fromRGB(76, 175, 80),
-        Warning = Color3.fromRGB(255, 193, 7),
-        Error = Color3.fromRGB(244, 67, 54),
-        Border = Color3.fromRGB(40, 90, 50)
+    Cyber = {
+        BACKGROUND = Color3.fromRGB(10, 15, 20),
+        FRAME = Color3.fromRGB(20, 30, 40),
+        ACCENT = Color3.fromRGB(0, 255, 170),
+        ACCENT2 = Color3.fromRGB(0, 200, 255),
+        ACCENT3 = Color3.fromRGB(100, 255, 200),
+        TEXT = Color3.fromRGB(220, 255, 255),
+        BUTTON = Color3.fromRGB(30, 45, 60),
+        BUTTON_HOVER = Color3.fromRGB(50, 65, 80),
+        SUCCESS = Color3.fromRGB(0, 255, 170),
+        WARNING = Color3.fromRGB(255, 200, 0),
+        ERROR = Color3.fromRGB(255, 60, 90),
+        BORDER = Color3.fromRGB(0, 150, 200)
     }
 }
 
--- Animation presets
-local ANIMATION_PRESETS = {
-    Default = {
-        Speed = 0.3,
-        EasingStyle = Enum.EasingStyle.Quad,
-        EasingDirection = Enum.EasingDirection.Out
+-- Device optimization
+local DEVICE_SETTINGS = {
+    Mobile = {
+        BUTTON_SIZE = UDim2.new(0, 140, 0, 50),
+        FONT_SIZE = 16,
+        PADDING = 10,
+        TOUCH_TARGET = 44
     },
-    Bounce = {
-        Speed = 0.5,
-        EasingStyle = Enum.EasingStyle.Bounce,
-        EasingDirection = Enum.EasingDirection.Out
-    },
-    Elastic = {
-        Speed = 0.6,
-        EasingStyle = Enum.EasingStyle.Elastic,
-        EasingDirection = Enum.EasingDirection.Out
+    Desktop = {
+        BUTTON_SIZE = UDim2.new(0, 120, 0, 40),
+        FONT_SIZE = 14,
+        PADDING = 5,
+        TOUCH_TARGET = 30
     }
 }
+
+local currentDevice = NebulaUI_Internal.MobileEnabled and "Mobile" or "Desktop"
+local DEVICE = DEVICE_SETTINGS[currentDevice]
 
 -- Utility functions
 local function deepCopy(original)
@@ -141,14 +105,14 @@ local function deepCopy(original)
     return copy
 end
 
-local function createRippleEffect(button, position)
+local function createRippleEffect(button, position, theme)
     local ripple = Instance.new("Frame")
     ripple.Name = "Ripple"
     ripple.Size = UDim2.new(0, 0, 0, 0)
     ripple.Position = UDim2.new(0, position.X - button.AbsolutePosition.X, 0, position.Y - button.AbsolutePosition.Y)
     ripple.AnchorPoint = Vector2.new(0.5, 0.5)
     ripple.BackgroundColor3 = Color3.new(1, 1, 1)
-    ripple.BackgroundTransparency = 0.7
+    ripple.BackgroundTransparency = 0.8
     ripple.BorderSizePixel = 0
     ripple.ZIndex = button.ZIndex + 1
     
@@ -158,8 +122,8 @@ local function createRippleEffect(button, position)
     
     ripple.Parent = button
     
-    local maxSize = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 2
-    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local maxSize = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 2.5
+    local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local tween = TweenService:Create(ripple, tweenInfo, {
         Size = UDim2.new(0, maxSize, 0, maxSize),
         Position = UDim2.new(0.5, 0, 0.5, 0),
@@ -185,7 +149,7 @@ local function createGlowEffect(frame, theme)
         glow.Name = "GlowLayer" .. i
         glow.Size = UDim2.new(1, 0, 1, 0)
         glow.Position = UDim2.new(0, 0, 0, 0)
-        glow.BackgroundColor3 = theme.Accent
+        glow.BackgroundColor3 = theme.ACCENT
         glow.BackgroundTransparency = 0.7 + (i * 0.1)
         glow.BorderSizePixel = 0
         
@@ -194,7 +158,7 @@ local function createGlowEffect(frame, theme)
         corner.Parent = glow
         
         local stroke = Instance.new("UIStroke")
-        stroke.Color = theme.Accent2
+        stroke.Color = theme.ACCENT2
         stroke.Thickness = 1
         stroke.Transparency = 0.5
         stroke.Parent = glow
@@ -209,6 +173,16 @@ end
 local function makeDraggable(dragHandle, mainFrame)
     local dragging = false
     local dragInput, dragStart, startPos
+    
+    local function update(input)
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale, 
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale, 
+            startPos.Y.Offset + delta.Y
+        )
+    end
     
     dragHandle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -232,46 +206,41 @@ local function makeDraggable(dragHandle, mainFrame)
     
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            mainFrame.Position = UDim2.new(
-                startPos.X.Scale, 
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale, 
-                startPos.Y.Offset + delta.Y
-            )
+            update(input)
         end
     end)
 end
 
--- Main Window Class
+-- Main Nebula UI Library
 function NebulaUI:CreateWindow(options)
     options = options or {}
     
     local window = {
         Name = options.Name or "NebulaWindow",
         Title = options.Title or "Nebula UI",
-        Subtitle = options.Subtitle or "Advanced GUI Library",
-        Size = options.Size or UDim2.new(0, 500, 0, 600),
-        Position = options.Position or UDim2.new(0.5, -250, 0.5, -300),
-        Theme = options.Theme or "Default",
-        MinimizeKey = options.MinimizeKey or Enum.KeyCode.RightControl,
-        SaveConfig = options.SaveConfig or false,
+        Subtitle = options.Subtitle or "Advanced GUI Framework",
+        Size = options.Size or UDim2.new(0, 450, 0, 550),
+        Position = options.Position or UDim2.new(0.5, -225, 0.5, -275),
+        ThemeName = options.Theme or "Default",
+        MinimizeKey = options.MinimizeKey or Enum.KeyCode.F9,
+        SaveConfig = options.SaveConfig or true,
         ConfigFolder = options.ConfigFolder or "NebulaConfigs",
         Tabs = {},
         Flags = {},
         Elements = {},
         Open = true,
-        ParentGui = nil
+        ParentGui = nil,
+        MobileButton = nil
     }
     
     setmetatable(window, self)
     
     -- Apply theme
-    window.CurrentTheme = deepCopy(DEFAULT_THEMES[window.Theme] or DEFAULT_THEMES.Default)
+    window.Theme = deepCopy(NEBULA_THEMES[window.ThemeName] or NEBULA_THEMES.Default)
     if options.CustomTheme then
         for key, value in pairs(options.CustomTheme) do
-            if window.CurrentTheme[key] ~= nil then
-                window.CurrentTheme[key] = value
+            if window.Theme[key] ~= nil then
+                window.Theme[key] = value
             end
         end
     end
@@ -281,7 +250,7 @@ function NebulaUI:CreateWindow(options)
     
     -- Set up keybinds
     if window.MinimizeKey then
-        UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        window.KeyConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
             if gameProcessed then return end
             if input.KeyCode == window.MinimizeKey then
                 window:Toggle()
@@ -297,46 +266,51 @@ function NebulaUI:CreateWindow(options)
     table.insert(NebulaUI_Internal.Windows, window)
     
     if NebulaUI_Internal.DebugMode then
-        print("NebulaUI: Window '" .. window.Name .. "' created successfully")
+        window:Log("Window '" .. window.Name .. "' created successfully")
     end
     
     return window
 end
 
 function NebulaUI:BuildGUI()
+    -- Create ScreenGui
     local gui = Instance.new("ScreenGui")
     gui.Name = self.Name
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     gui.ResetOnSpawn = false
     
+    -- Load configuration if enabled
     if self.SaveConfig then
         self:LoadConfig()
     end
     
+    -- Main container
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
     mainFrame.Size = self.Size
     mainFrame.Position = self.Position
-    mainFrame.BackgroundColor3 = self.CurrentTheme.Background
+    mainFrame.BackgroundColor3 = self.Theme.BACKGROUND
     mainFrame.BorderSizePixel = 0
+    mainFrame.ClipsDescendants = true
     
     local mainCorner = Instance.new("UICorner")
     mainCorner.CornerRadius = UDim.new(0, 12)
     mainCorner.Parent = mainFrame
     
     local mainStroke = Instance.new("UIStroke")
-    mainStroke.Color = self.CurrentTheme.Border
+    mainStroke.Color = self.Theme.BORDER
     mainStroke.Thickness = 2
     mainStroke.Parent = mainFrame
     
-    createGlowEffect(mainFrame, self.CurrentTheme)
+    -- Add glow effect
+    createGlowEffect(mainFrame, self.Theme)
     
     -- Title Bar
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
-    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.Size = UDim2.new(1, 0, 0, 50)
     titleBar.Position = UDim2.new(0, 0, 0, 0)
-    titleBar.BackgroundColor3 = self.CurrentTheme.Foreground
+    titleBar.BackgroundColor3 = self.Theme.FRAME
     titleBar.BorderSizePixel = 0
     
     local titleCorner = Instance.new("UICorner")
@@ -345,72 +319,90 @@ function NebulaUI:BuildGUI()
     
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
-    titleLabel.Size = UDim2.new(1, -80, 1, 0)
-    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+    titleLabel.Size = UDim2.new(1, -80, 0, 30)
+    titleLabel.Position = UDim2.new(0, 15, 0, 5)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = self.Title
-    titleLabel.TextColor3 = self.CurrentTheme.Text
-    titleLabel.TextSize = 18
+    titleLabel.TextColor3 = self.Theme.TEXT
+    titleLabel.TextSize = 20
     titleLabel.Font = Enum.Font.SciFi
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     
     local subtitleLabel = Instance.new("TextLabel")
     subtitleLabel.Name = "Subtitle"
     subtitleLabel.Size = UDim2.new(1, -80, 0, 15)
-    subtitleLabel.Position = UDim2.new(0, 10, 0, 20)
+    subtitleLabel.Position = UDim2.new(0, 15, 0, 30)
     subtitleLabel.BackgroundTransparency = 1
     subtitleLabel.Text = self.Subtitle
-    subtitleLabel.TextColor3 = self.CurrentTheme.TextDark
+    subtitleLabel.TextColor3 = self.Theme.TEXT
+    subtitleLabel.TextTransparency = 0.3
     subtitleLabel.TextSize = 12
     subtitleLabel.Font = Enum.Font.SciFi
     subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     
+    -- Close button
     local closeButton = self:CreateButton({
-        Text = "X",
+        Text = "✕",
         Size = UDim2.new(0, 30, 0, 30),
-        Position = UDim2.new(1, -40, 0, 5),
-        BackgroundColor3 = self.CurrentTheme.Error
+        Position = UDim2.new(1, -40, 0, 10),
+        BackgroundColor3 = self.Theme.ERROR,
+        TextColor3 = self.Theme.TEXT
     })
     
     closeButton.MouseButton1Click:Connect(function()
         self:Toggle()
     end)
     
-    -- Tab System
+    -- Tab system container
+    local tabSystem = Instance.new("Frame")
+    tabSystem.Name = "TabSystem"
+    tabSystem.Size = UDim2.new(1, -20, 1, -70)
+    tabSystem.Position = UDim2.new(0, 10, 0, 60)
+    tabSystem.BackgroundTransparency = 1
+    
+    -- Tab buttons container
     local tabButtonsFrame = Instance.new("Frame")
     tabButtonsFrame.Name = "TabButtons"
-    tabButtonsFrame.Size = UDim2.new(1, -20, 0, 40)
-    tabButtonsFrame.Position = UDim2.new(0, 10, 0, 50)
+    tabButtonsFrame.Size = UDim2.new(1, 0, 0, 40)
     tabButtonsFrame.BackgroundTransparency = 1
     
+    -- Tab content container
     local tabContentFrame = Instance.new("Frame")
     tabContentFrame.Name = "TabContent"
-    tabContentFrame.Size = UDim2.new(1, -20, 1, -100)
-    tabContentFrame.Position = UDim2.new(0, 10, 0, 100)
+    tabContentFrame.Size = UDim2.new(1, 0, 1, -45)
+    tabContentFrame.Position = UDim2.new(0, 0, 0, 45)
     tabContentFrame.BackgroundTransparency = 1
+    tabContentFrame.ClipsDescendants = true
     
-    -- Assemble GUI
+    -- Assemble GUI hierarchy
     titleLabel.Parent = titleBar
     subtitleLabel.Parent = titleBar
     closeButton.Parent = titleBar
     titleBar.Parent = mainFrame
-    tabButtonsFrame.Parent = mainFrame
-    tabContentFrame.Parent = mainFrame
+    
+    tabButtonsFrame.Parent = tabSystem
+    tabContentFrame.Parent = tabSystem
+    tabSystem.Parent = mainFrame
+    
     mainFrame.Parent = gui
     gui.Parent = player.PlayerGui
     
+    -- Store references
     self.GUI = gui
     self.MainFrame = mainFrame
     self.TitleBar = titleBar
+    self.TabSystem = tabSystem
     self.TabButtonsFrame = tabButtonsFrame
     self.TabContentFrame = tabContentFrame
     
+    -- Make draggable
     makeDraggable(titleBar, mainFrame)
     
+    -- Initial notification
     self:Notify({
         Title = self.Title,
-        Content = "Window loaded successfully!",
-        Type = "Success",
+        Content = "Nebula UI loaded successfully!",
+        Type = "SUCCESS",
         Duration = 3
     })
 end
@@ -418,9 +410,11 @@ end
 function NebulaUI:CreateMobileButton()
     local mobileButton = self:CreateButton({
         Text = "☰",
-        Size = UDim2.new(0, 50, 0, 50),
+        Size = UDim2.new(0, 60, 0, 60),
         Position = UDim2.new(0, 20, 0, 20),
-        BackgroundColor3 = self.CurrentTheme.Accent
+        BackgroundColor3 = self.Theme.ACCENT,
+        TextColor3 = self.Theme.TEXT,
+        TextSize = 24
     })
     
     mobileButton.ZIndex = 100
@@ -442,20 +436,21 @@ function NebulaUI:Toggle()
             self:Notify({
                 Title = self.Title,
                 Content = "Window enabled",
-                Type = "Success",
+                Type = "SUCCESS",
                 Duration = 2
             })
         else
             self:Notify({
                 Title = self.Title,
-                Content = "Window disabled",
-                Type = "Warning",
+                Content = "Window disabled - Use " .. (self.MinimizeKey and self.MinimizeKey.Name or "F9") .. " to reopen",
+                Type = "WARNING",
                 Duration = 2
             })
         end
     end
 end
 
+-- Tab Management
 function NebulaUI:CreateTab(options)
     options = options or {}
     
@@ -464,14 +459,16 @@ function NebulaUI:CreateTab(options)
         Icon = options.Icon,
         Default = options.Default or false,
         Window = self,
-        Elements = {}
+        Elements = {},
+        BadgeCount = 0
     }
     
     -- Create tab button
     local tabButton = self:CreateButton({
         Text = tab.Name,
         Size = UDim2.new(0.2, -5, 0, 35),
-        BackgroundColor3 = self.CurrentTheme.Foreground
+        BackgroundColor3 = self.Theme.FRAME,
+        TextColor3 = self.Theme.TEXT
     })
     
     -- Create tab content
@@ -480,12 +477,17 @@ function NebulaUI:CreateTab(options)
     tabContent.Size = UDim2.new(1, 0, 1, 0)
     tabContent.BackgroundTransparency = 1
     tabContent.ScrollBarThickness = 6
-    tabContent.ScrollBarImageColor3 = self.CurrentTheme.Accent
+    tabContent.ScrollBarImageColor3 = self.Theme.ACCENT
     tabContent.Visible = false
+    tabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
     
     local layout = Instance.new("UIListLayout")
     layout.Parent = tabContent
-    layout.Padding = UDim.new(0, 5)
+    layout.Padding = UDim.new(0, DEVICE.PADDING)
+    
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        tabContent.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+    end)
     
     tab.Button = tabButton
     tab.Content = tabContent
@@ -508,12 +510,12 @@ function NebulaUI:CreateTab(options)
         self:Notify({
             Title = "Tab Changed",
             Content = "Now viewing: " .. tab.Name,
-            Type = "Success",
-            Duration = 2
+            Type = "SUCCESS",
+            Duration = 1
         })
     end)
     
-    -- Set as default if specified
+    -- Set as default if specified or first tab
     if tab.Default or tabCount == 1 then
         tabContent.Visible = true
     end
@@ -523,8 +525,8 @@ function NebulaUI:CreateTab(options)
         __index = function(_, key)
             local method = NebulaUI[key]
             if method then
-                return function(self, ...)
-                    return method(self.Window, ...)
+                return function(tabSelf, ...)
+                    return method(self, tabSelf.Content, ...)
                 end
             end
         end
@@ -539,12 +541,12 @@ function NebulaUI:CreateButton(options)
     
     local button = Instance.new("TextButton")
     button.Name = options.Name or "Button"
-    button.Size = options.Size or UDim2.new(1, 0, 0, 40)
+    button.Size = options.Size or DEVICE.BUTTON_SIZE
     button.Position = options.Position or UDim2.new(0, 0, 0, 0)
-    button.BackgroundColor3 = options.BackgroundColor3 or self.CurrentTheme.Accent
+    button.BackgroundColor3 = options.BackgroundColor3 or self.Theme.BUTTON
     button.Text = options.Text or "Button"
-    button.TextColor3 = options.TextColor3 or self.CurrentTheme.Text
-    button.TextSize = options.TextSize or 14
+    button.TextColor3 = options.TextColor3 or self.Theme.TEXT
+    button.TextSize = options.TextSize or DEVICE.FONT_SIZE
     button.Font = options.Font or Enum.Font.SciFi
     button.AutoButtonColor = false
     button.ClipsDescendants = true
@@ -554,14 +556,14 @@ function NebulaUI:CreateButton(options)
     corner.Parent = button
     
     local stroke = Instance.new("UIStroke")
-    stroke.Color = self.CurrentTheme.Border
+    stroke.Color = self.Theme.ACCENT2
     stroke.Thickness = 2
     stroke.Parent = button
     
-    -- Hover effects
+    -- Enhanced hover effects
     button.MouseEnter:Connect(function()
         local tween = TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.CurrentTheme.Accent2,
+            BackgroundColor3 = self.Theme.BUTTON_HOVER,
             Size = button.Size + UDim2.new(0, 5, 0, 5)
         })
         tween:Play()
@@ -569,25 +571,25 @@ function NebulaUI:CreateButton(options)
     
     button.MouseLeave:Connect(function()
         local tween = TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = options.BackgroundColor3 or self.CurrentTheme.Accent,
-            Size = options.Size or UDim2.new(1, 0, 0, 40)
+            BackgroundColor3 = options.BackgroundColor3 or self.Theme.BUTTON,
+            Size = options.Size or DEVICE.BUTTON_SIZE
         })
         tween:Play()
     end)
     
-    -- Click effects
+    -- Click effects with ripple
     button.MouseButton1Down:Connect(function()
         local tween = TweenService:Create(button, TweenInfo.new(0.1), {
-            BackgroundColor3 = self.CurrentTheme.AccentGradient,
-            Size = (options.Size or UDim2.new(1, 0, 0, 40)) - UDim2.new(0, 3, 0, 3)
+            BackgroundColor3 = self.Theme.ACCENT,
+            Size = (options.Size or DEVICE.BUTTON_SIZE) - UDim2.new(0, 3, 0, 3)
         })
         tween:Play()
     end)
     
     button.MouseButton1Up:Connect(function()
         local tween = TweenService:Create(button, TweenInfo.new(0.1), {
-            BackgroundColor3 = self.CurrentTheme.Accent2,
-            Size = (options.Size or UDim2.new(1, 0, 0, 40)) + UDim2.new(0, 5, 0, 5)
+            BackgroundColor3 = self.Theme.BUTTON_HOVER,
+            Size = (options.Size or DEVICE.BUTTON_SIZE) + UDim2.new(0, 5, 0, 5)
         })
         tween:Play()
     end)
@@ -595,11 +597,11 @@ function NebulaUI:CreateButton(options)
     -- Ripple effect
     button.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            createRippleEffect(button, input.Position)
+            createRippleEffect(button, input.Position, self.Theme)
         end
     end)
     
-    -- Callback
+    -- Callback execution
     if options.Callback then
         button.MouseButton1Click:Connect(function()
             local success, err = pcall(options.Callback)
@@ -612,14 +614,14 @@ function NebulaUI:CreateButton(options)
     return button
 end
 
-function NebulaUI:AddButton(tab, options)
+-- Public API Methods for adding elements to tabs
+function NebulaUI:AddButton(tabContent, options)
     local button = self:CreateButton(options)
-    button.Parent = tab.Content
-    tab.Content.CanvasSize = UDim2.new(0, 0, 0, tab.Content.UIListLayout.AbsoluteContentSize.Y)
+    button.Parent = tabContent
     return button
 end
 
-function NebulaUI:AddToggle(tab, options)
+function NebulaUI:AddToggle(tabContent, options)
     options = options or {}
     
     local toggleContainer = Instance.new("Frame")
@@ -632,8 +634,8 @@ function NebulaUI:AddToggle(tab, options)
     label.Size = UDim2.new(0.7, 0, 1, 0)
     label.BackgroundTransparency = 1
     label.Text = options.Name or "Toggle"
-    label.TextColor3 = self.CurrentTheme.Text
-    label.TextSize = 14
+    label.TextColor3 = self.Theme.TEXT
+    label.TextSize = DEVICE.FONT_SIZE
     label.Font = Enum.Font.SciFi
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = toggleContainer
@@ -642,9 +644,9 @@ function NebulaUI:AddToggle(tab, options)
     toggleButton.Name = "Toggle"
     toggleButton.Size = UDim2.new(0, 60, 0, 30)
     toggleButton.Position = UDim2.new(1, -70, 0, 5)
-    toggleButton.BackgroundColor3 = (options.Default and self.CurrentTheme.Success) or self.CurrentTheme.Foreground
+    toggleButton.BackgroundColor3 = (options.Default and self.Theme.SUCCESS) or self.Theme.BUTTON
     toggleButton.Text = (options.Default and "ON") or "OFF"
-    toggleButton.TextColor3 = self.CurrentTheme.Text
+    toggleButton.TextColor3 = self.Theme.TEXT
     toggleButton.TextSize = 12
     toggleButton.Font = Enum.Font.SciFi
     toggleButton.AutoButtonColor = false
@@ -654,7 +656,7 @@ function NebulaUI:AddToggle(tab, options)
     corner.Parent = toggleButton
     
     local stroke = Instance.new("UIStroke")
-    stroke.Color = self.CurrentTheme.Border
+    stroke.Color = self.Theme.ACCENT2
     stroke.Thickness = 2
     stroke.Parent = toggleButton
     
@@ -665,7 +667,7 @@ function NebulaUI:AddToggle(tab, options)
         toggleButton.Text = isToggled and "ON" or "OFF"
         
         local tween = TweenService:Create(toggleButton, TweenInfo.new(0.2), {
-            BackgroundColor3 = isToggled and self.CurrentTheme.Success or self.CurrentTheme.Foreground
+            BackgroundColor3 = isToggled and self.Theme.SUCCESS or self.Theme.BUTTON
         })
         tween:Play()
         
@@ -685,8 +687,7 @@ function NebulaUI:AddToggle(tab, options)
     end)
     
     toggleButton.Parent = toggleContainer
-    toggleContainer.Parent = tab.Content
-    tab.Content.CanvasSize = UDim2.new(0, 0, 0, tab.Content.UIListLayout.AbsoluteContentSize.Y)
+    toggleContainer.Parent = tabContent
     
     if options.Flag then
         self.Flags[options.Flag] = isToggled
@@ -695,7 +696,7 @@ function NebulaUI:AddToggle(tab, options)
     return toggleContainer
 end
 
-function NebulaUI:AddSlider(tab, options)
+function NebulaUI:AddSlider(tabContent, options)
     options = options or {}
     
     local sliderContainer = Instance.new("Frame")
@@ -709,8 +710,8 @@ function NebulaUI:AddSlider(tab, options)
     label.Position = UDim2.new(0, 0, 0, 0)
     label.BackgroundTransparency = 1
     label.Text = (options.Name or "Slider") .. ": " .. (options.Default or options.Min or 0)
-    label.TextColor3 = self.CurrentTheme.Text
-    label.TextSize = 14
+    label.TextColor3 = self.Theme.TEXT
+    label.TextSize = DEVICE.FONT_SIZE
     label.Font = Enum.Font.SciFi
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = sliderContainer
@@ -719,7 +720,7 @@ function NebulaUI:AddSlider(tab, options)
     track.Name = "Track"
     track.Size = UDim2.new(1, 0, 0, 6)
     track.Position = UDim2.new(0, 0, 0, 30)
-    track.BackgroundColor3 = self.CurrentTheme.Foreground
+    track.BackgroundColor3 = self.Theme.BUTTON
     track.BorderSizePixel = 0
     
     local trackCorner = Instance.new("UICorner")
@@ -730,7 +731,7 @@ function NebulaUI:AddSlider(tab, options)
     fill.Name = "Fill"
     fill.Size = UDim2.new((options.Default or options.Min or 0) / (options.Max or 100), 0, 1, 0)
     fill.Position = UDim2.new(0, 0, 0, 0)
-    fill.BackgroundColor3 = self.CurrentTheme.Accent
+    fill.BackgroundColor3 = self.Theme.ACCENT
     fill.BorderSizePixel = 0
     
     local fillCorner = Instance.new("UICorner")
@@ -741,7 +742,7 @@ function NebulaUI:AddSlider(tab, options)
     thumb.Name = "Thumb"
     thumb.Size = UDim2.new(0, 20, 0, 20)
     thumb.Position = UDim2.new((options.Default or options.Min or 0) / (options.Max or 100), -10, 0, -7)
-    thumb.BackgroundColor3 = self.CurrentTheme.Accent2
+    thumb.BackgroundColor3 = self.Theme.ACCENT2
     thumb.Text = ""
     thumb.AutoButtonColor = false
     
@@ -750,7 +751,7 @@ function NebulaUI:AddSlider(tab, options)
     thumbCorner.Parent = thumb
     
     local thumbStroke = Instance.new("UIStroke")
-    thumbStroke.Color = self.CurrentTheme.Text
+    thumbStroke.Color = self.Theme.TEXT
     thumbStroke.Thickness = 2
     thumbStroke.Parent = thumb
     
@@ -810,14 +811,65 @@ function NebulaUI:AddSlider(tab, options)
         end
     end)
     
-    sliderContainer.Parent = tab.Content
-    tab.Content.CanvasSize = UDim2.new(0, 0, 0, tab.Content.UIListLayout.AbsoluteContentSize.Y)
+    sliderContainer.Parent = tabContent
     
     if options.Flag then
         self.Flags[options.Flag] = currentValue
     end
     
     return sliderContainer
+end
+
+function NebulaUI:AddLabel(tabContent, options)
+    options = options or {}
+    
+    local label = Instance.new("TextLabel")
+    label.Name = options.Name or "Label"
+    label.Size = UDim2.new(1, 0, 0, options.Height or 30)
+    label.BackgroundTransparency = 1
+    label.Text = options.Text or "Label"
+    label.TextColor3 = options.Color or self.Theme.TEXT
+    label.TextSize = options.TextSize or DEVICE.FONT_SIZE
+    label.Font = options.Font or Enum.Font.SciFi
+    label.TextXAlignment = options.Alignment or Enum.TextXAlignment.Left
+    label.TextWrapped = true
+    
+    label.Parent = tabContent
+    return label
+end
+
+function NebulaUI:AddSection(tabContent, options)
+    options = options or {}
+    
+    local section = Instance.new("Frame")
+    section.Name = options.Name or "Section"
+    section.Size = UDim2.new(1, 0, 0, 40)
+    section.BackgroundTransparency = 1
+    
+    local label = Instance.new("TextLabel")
+    label.Name = "SectionLabel"
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.Position = UDim2.new(0, 0, 0, 10)
+    label.BackgroundTransparency = 1
+    label.Text = options.Name or "Section"
+    label.TextColor3 = self.Theme.ACCENT
+    label.TextSize = 16
+    label.Font = Enum.Font.SciFi
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local line = Instance.new("Frame")
+    line.Name = "Divider"
+    line.Size = UDim2.new(1, 0, 0, 1)
+    line.Position = UDim2.new(0, 0, 0, 35)
+    line.BackgroundColor3 = self.Theme.ACCENT2
+    line.BorderSizePixel = 0
+    line.BackgroundTransparency = 0.5
+    
+    label.Parent = section
+    line.Parent = section
+    section.Parent = tabContent
+    
+    return section
 end
 
 -- Notification System
@@ -830,7 +882,7 @@ function NebulaUI:Notify(options)
     notification.Name = "Notification"
     notification.Size = UDim2.new(0, 300, 0, 80)
     notification.Position = UDim2.new(1, -320, 1, -100)
-    notification.BackgroundColor3 = self.CurrentTheme.Foreground
+    notification.BackgroundColor3 = self.Theme.FRAME
     notification.BorderSizePixel = 0
     notification.ZIndex = 100
     
@@ -838,13 +890,13 @@ function NebulaUI:Notify(options)
     corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = notification
     
-    local strokeColor = self.CurrentTheme.Accent
-    if options.Type == "Success" then
-        strokeColor = self.CurrentTheme.Success
-    elseif options.Type == "Warning" then
-        strokeColor = self.CurrentTheme.Warning
-    elseif options.Type == "Error" then
-        strokeColor = self.CurrentTheme.Error
+    local strokeColor = self.Theme.ACCENT
+    if options.Type == "SUCCESS" then
+        strokeColor = self.Theme.SUCCESS
+    elseif options.Type == "WARNING" then
+        strokeColor = self.Theme.WARNING
+    elseif options.Type == "ERROR" then
+        strokeColor = self.Theme.ERROR
     end
     
     local stroke = Instance.new("UIStroke")
@@ -868,7 +920,7 @@ function NebulaUI:Notify(options)
     messageLabel.Position = UDim2.new(0, 10, 0, 35)
     messageLabel.BackgroundTransparency = 1
     messageLabel.Text = options.Content or ""
-    messageLabel.TextColor3 = self.CurrentTheme.Text
+    messageLabel.TextColor3 = self.Theme.TEXT
     messageLabel.TextSize = 14
     messageLabel.Font = Enum.Font.SciFi
     messageLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -905,13 +957,14 @@ function NebulaUI:SaveConfig(name)
     local configName = name or self.Name
     local configData = {
         WindowPosition = self.MainFrame.Position,
-        Flags = self.Flags
+        Flags = self.Flags,
+        Theme = self.ThemeName
     }
     
     NebulaUI_Internal.Configs[configName] = configData
     
     if NebulaUI_Internal.DebugMode then
-        print("NebulaUI: Config saved - " .. configName)
+        self:Log("Config saved: " .. configName)
     end
 end
 
@@ -928,11 +981,14 @@ function NebulaUI:LoadConfig(name)
         
         if configData.Flags then
             self.Flags = configData.Flags
-            -- Apply flag values to elements (would need element references)
+        end
+        
+        if configData.Theme then
+            self:SetTheme(configData.Theme)
         end
         
         if NebulaUI_Internal.DebugMode then
-            print("NebulaUI: Config loaded - " .. configName)
+            self:Log("Config loaded: " .. configName)
         end
     end
 end
@@ -940,21 +996,22 @@ end
 function NebulaUI:GetConfig()
     return {
         WindowPosition = self.MainFrame.Position,
-        Flags = self.Flags
+        Flags = self.Flags,
+        Theme = self.ThemeName
     }
 end
 
 -- Theme Management
 function NebulaUI:SetTheme(themeName)
-    if DEFAULT_THEMES[themeName] then
-        self.Theme = themeName
-        self.CurrentTheme = deepCopy(DEFAULT_THEMES[themeName])
+    if NEBULA_THEMES[themeName] then
+        self.ThemeName = themeName
+        self.Theme = deepCopy(NEBULA_THEMES[themeName])
         self:UpdateTheme()
         
         self:Notify({
             Title = "Theme Changed",
             Content = "Applied theme: " .. themeName,
-            Type = "Success",
+            Type = "SUCCESS",
             Duration = 3
         })
     else
@@ -963,15 +1020,18 @@ function NebulaUI:SetTheme(themeName)
 end
 
 function NebulaUI:UpdateTheme()
-    -- This would update all UI elements with the new theme
-    -- Implementation would require storing references to all created elements
+    -- Update all UI elements with new theme
     if self.MainFrame then
-        self.MainFrame.BackgroundColor3 = self.CurrentTheme.Background
+        self.MainFrame.BackgroundColor3 = self.Theme.BACKGROUND
+        self.TitleBar.BackgroundColor3 = self.Theme.FRAME
     end
 end
 
 -- Utility Methods
 function NebulaUI:Destroy()
+    if self.KeyConnection then
+        self.KeyConnection:Disconnect()
+    end
     if self.GUI then
         self.GUI:Destroy()
     end
@@ -994,12 +1054,18 @@ function NebulaUI:SetVisible(visible)
     end
 end
 
+function NebulaUI:Log(message)
+    if NebulaUI_Internal.DebugMode then
+        print("[NebulaUI] " .. message)
+    end
+end
+
 -- Library initialization
 function NebulaUI:Initialize()
     self:Notify({
         Title = self.Title,
-        Content = "Nebula UI initialized successfully!",
-        Type = "Success",
+        Content = "Nebula UI v" .. NebulaUI_Internal.Version .. " initialized!",
+        Type = "SUCCESS",
         Duration = 3
     })
 end
@@ -1011,14 +1077,24 @@ function NebulaUI.SetDebugMode(enabled)
 end
 
 function NebulaUI.GetVersion()
-    return "2.0.0"
+    return NebulaUI_Internal.Version
+end
+
+function NebulaUI.GetDeviceInfo()
+    return {
+        IsMobile = NebulaUI_Internal.MobileEnabled,
+        DeviceType = currentDevice,
+        Settings = DEVICE
+    }
 end
 
 -- Make the library available globally
 getgenv().NebulaUI = NebulaUI
 
+-- Auto-initialize if in testing environment
 if NebulaUI_Internal.DebugMode then
     print("Nebula UI Library v" .. NebulaUI.GetVersion() .. " loaded successfully")
+    print("Device: " .. currentDevice .. " | Mobile: " .. tostring(NebulaUI_Internal.MobileEnabled))
 end
 
 return NebulaUI
