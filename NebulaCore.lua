@@ -1,6 +1,6 @@
--- Nebula UI Library v3.0
+-- Nebula UI Library v3.1
 -- Modern Mobile-First GUI Framework for Roblox
--- Inspired by Fluent UI Design Principles
+-- Enhanced with Advanced Animations & Debug System
 
 local NebulaUI = {}
 NebulaUI.__index = NebulaUI
@@ -74,14 +74,115 @@ local MOBILE_SETTINGS = {
     TOUCH_TARGET = 44
 }
 
+-- Advanced Animation System (Rayfield Inspired)
+local ENHANCED_ANIMATIONS = {
+    EASING_STYLES = {
+        SMOOTH = Enum.EasingStyle.Quint,
+        BOUNCY = Enum.EasingStyle.Back,
+        SPRINGY = Enum.EasingStyle.Elastic,
+        SHARP = Enum.EasingStyle.Cubic
+    },
+    
+    PRESETS = {
+        SIDEBAR_OPEN = {
+            Time = 0.4,
+            Style = Enum.EasingStyle.Quint,
+            Direction = Enum.EasingDirection.Out
+        },
+        BUTTON_HOVER = {
+            Time = 0.2,
+            Style = Enum.EasingStyle.Cubic,
+            Direction = Enum.EasingDirection.Out
+        },
+        TOAST_SLIDE = {
+            Time = 0.5,
+            Style = Enum.EasingStyle.Back,
+            Direction = Enum.EasingDirection.Out
+        },
+        RIPPLE_EFFECT = {
+            Time = 0.6,
+            Style = Enum.EasingStyle.Quad,
+            Direction = Enum.EasingDirection.Out
+        }
+    }
+}
+
 -- Internal State
 local NebulaUI_Internal = {
     Windows = {},
     Toasts = {},
     CurrentTheme = "Modern",
     IsMobile = UserInputService.TouchEnabled,
-    Version = "3.0.0"
+    Version = "3.1.0"
 }
+
+-- Debug System
+local DebugSystem = {
+    Enabled = true,
+    LogLevel = "INFO" -- DEBUG, INFO, WARN, ERROR
+}
+
+-- Performance monitoring
+function NebulaUI:MeasurePerformance(funcName, func)
+    local startTime = tick()
+    local success, result = pcall(func)
+    local endTime = tick()
+    
+    self:DebugLog(string.format("%s executed in %.3f seconds", funcName, endTime - startTime), "DEBUG")
+    
+    if not success then
+        self:DebugLog(string.format("Error in %s: %s", funcName, result), "ERROR")
+    end
+    
+    return result
+end
+
+-- Debug logging
+function NebulaUI:DebugLog(message, level)
+    if not DebugSystem.Enabled then return end
+    
+    level = level or "INFO"
+    local timestamp = DateTime.now():FormatLocalTime("LTS", "id-ID")
+    local logMessage = string.format("[%s] [%s] %s", timestamp, level, message)
+    
+    print(logMessage)
+    
+    -- Untuk error yang critical, tampilkan toast juga
+    if level == "ERROR" then
+        self:ShowToast({
+            Title = "System Error",
+            Content = message,
+            Type = "ERROR", 
+            Duration = 5
+        })
+    end
+end
+
+-- Enhanced tween system dengan callback support
+function NebulaUI:CreateAdvancedTween(object, tweenInfo, goals, callback)
+    local tween = TweenService:Create(object, tweenInfo, goals)
+    tween:Play()
+    
+    if callback then
+        tween.Completed:Connect(callback)
+    end
+    
+    return tween
+end
+
+-- Sequence animations untuk flow yang lebih smooth
+function NebulaUI:CreateAnimationSequence(animations)
+    local function executeNext(index)
+        if index > #animations then return end
+        
+        local anim = animations[index]
+        local tween = self:CreateAdvancedTween(anim.object, anim.tweenInfo, anim.goals, function()
+            executeNext(index + 1)
+        end)
+    end
+    
+    executeNext(1)
+end
 
 -- Modern Toast Notification System
 local ToastManager = {}
@@ -171,18 +272,27 @@ function ToastManager:CreateToast(options)
     
     toast.Parent = self.Parent
     
-    -- Animate In
+    -- Animate In dengan advanced easing
     toast.Position = UDim2.new(0.1, 0, 0.7, 0)
-    local tweenIn = TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    local tweenInfo = TweenInfo.new(
+        0.5,
+        Enum.EasingStyle.Back,
+        Enum.EasingDirection.Out,
+        0,
+        false,
+        0
+    )
+    
+    local tweenIn = TweenService:Create(toast, tweenInfo, {
         Position = UDim2.new(0.1, 0, 0.7, -80)
     })
     tweenIn:Play()
     
     table.insert(self.ActiveToasts, toast)
     
-    -- Auto dismiss
+    -- Auto dismiss dengan task.delay
     local duration = options.Duration or 4
-    delay(duration, function()
+    task.delay(duration, function()
         self:DismissToast(toast)
     end)
     
@@ -241,26 +351,30 @@ end
 
 -- Enhanced Sidebar Navigation
 function NebulaUI:CreateWindow(options)
-    options = options or {}
-    
-    local window = {
-        Name = options.Name or "NebulaWindow",
-        Title = options.Title or "Nebula UI",
-        ThemeName = options.Theme or "Modern",
-        Tabs = {},
-        Flags = {},
-        IsOpen = false
-    }
-    
-    setmetatable(window, self)
-    
-    -- Apply theme
-    window.Theme = MODERN_THEMES[window.ThemeName]
-    window:BuildModernGUI()
-    
-    table.insert(NebulaUI_Internal.Windows, window)
-    
-    return window
+    return self:MeasurePerformance("CreateWindow", function()
+        options = options or {}
+        
+        local window = {
+            Name = options.Name or "NebulaWindow",
+            Title = options.Title or "Nebula UI",
+            ThemeName = options.Theme or "Modern",
+            Tabs = {},
+            Flags = {},
+            IsOpen = false
+        }
+        
+        setmetatable(window, self)
+        
+        -- Apply theme
+        window.Theme = MODERN_THEMES[window.ThemeName]
+        window:BuildModernGUI()
+        
+        table.insert(NebulaUI_Internal.Windows, window)
+        
+        self:DebugLog(string.format("Window '%s' created successfully", window.Name), "INFO")
+        
+        return window
+    end)
 end
 
 function NebulaUI:BuildModernGUI()
@@ -396,6 +510,42 @@ function NebulaUI:BuildModernGUI()
     self.ToastManager = ToastManager.new(gui)
     
     gui.Parent = player.PlayerGui
+    
+    self:DebugLog(string.format("Modern GUI built for window '%s'", self.Name), "INFO")
+end
+
+-- Enhanced ripple effect dengan konfigurasi yang lebih baik
+function NebulaUI:CreateRippleEffect(button, input)
+    local ripple = Instance.new("Frame")
+    ripple.Name = "AdvancedRipple"
+    ripple.Size = UDim2.new(0, 0, 0, 0)
+    ripple.Position = UDim2.new(0, input.Position.X - button.AbsolutePosition.X, 0, input.Position.Y - button.AbsolutePosition.Y)
+    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+    ripple.BackgroundColor3 = Color3.new(1, 1, 1)
+    ripple.BackgroundTransparency = 0.7
+    ripple.BorderSizePixel = 0
+    ripple.ZIndex = button.ZIndex + 1
+    
+    local rippleCorner = Instance.new("UICorner")
+    rippleCorner.CornerRadius = UDim.new(1, 0)
+    rippleCorner.Parent = ripple
+    
+    ripple.Parent = button
+    
+    local maxSize = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 2.5
+    local tweenInfo = TweenInfo.new(
+        0.6, 
+        Enum.EasingStyle.Quad, 
+        Enum.EasingDirection.Out
+    )
+    
+    self:CreateAdvancedTween(ripple, tweenInfo, {
+        Size = UDim2.new(0, maxSize, 0, maxSize),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        BackgroundTransparency = 1
+    }, function()
+        ripple:Destroy()
+    end)
 end
 
 function NebulaUI:CreateModernButton(options)
@@ -418,34 +568,7 @@ function NebulaUI:CreateModernButton(options)
     
     -- Ripple effect
     local function createRipple(input)
-        local ripple = Instance.new("Frame")
-        ripple.Name = "Ripple"
-        ripple.Size = UDim2.new(0, 0, 0, 0)
-        ripple.Position = UDim2.new(0, input.Position.X - button.AbsolutePosition.X, 0, input.Position.Y - button.AbsolutePosition.Y)
-        ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-        ripple.BackgroundColor3 = Color3.new(1, 1, 1)
-        ripple.BackgroundTransparency = 0.8
-        ripple.BorderSizePixel = 0
-        ripple.ZIndex = button.ZIndex + 1
-        
-        local rippleCorner = Instance.new("UICorner")
-        rippleCorner.CornerRadius = UDim.new(1, 0)
-        rippleCorner.Parent = ripple
-        
-        ripple.Parent = button
-        
-        local maxSize = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 2
-        local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        local tween = TweenService:Create(ripple, tweenInfo, {
-            Size = UDim2.new(0, maxSize, 0, maxSize),
-            Position = UDim2.new(0.5, 0, 0.5, 0),
-            BackgroundTransparency = 1
-        })
-        
-        tween:Play()
-        tween.Completed:Connect(function()
-            ripple:Destroy()
-        end)
+        self:CreateRippleEffect(button, input)
     end
     
     -- Interaction effects
@@ -537,54 +660,64 @@ function NebulaUI:CreateTab(options)
         self:SelectTab(tab)
     end
     
+    self:DebugLog(string.format("Tab '%s' created successfully", tab.Name), "INFO")
+    
     return tab
 end
 
 function NebulaUI:SelectTab(selectedTab)
-    for _, tab in ipairs(self.Tabs) do
-        tab.Content.Visible = false
-        TweenService:Create(tab.Button, TweenInfo.new(0.2), {
-            BackgroundColor3 = self.Theme.SURFACE_VARIANT
+    return self:MeasurePerformance("SelectTab", function()
+        for _, tab in ipairs(self.Tabs) do
+            tab.Content.Visible = false
+            TweenService:Create(tab.Button, TweenInfo.new(0.2), {
+                BackgroundColor3 = self.Theme.SURFACE_VARIANT
+            }):Play()
+        end
+        
+        selectedTab.Content.Visible = true
+        TweenService:Create(selectedTab.Button, TweenInfo.new(0.2), {
+            BackgroundColor3 = self.Theme.PRIMARY
         }):Play()
-    end
-    
-    selectedTab.Content.Visible = true
-    TweenService:Create(selectedTab.Button, TweenInfo.new(0.2), {
-        BackgroundColor3 = self.Theme.PRIMARY
-    }):Play()
-    
-    self.ContentArea.Visible = true
-    self:ToggleSidebar(false)
-    
-    self.ToastManager:ShowToast({
-        Title = "Navigation",
-        Content = "Switched to " .. selectedTab.Name,
-        Type = "INFO",
-        Duration = 2
-    })
+        
+        self.ContentArea.Visible = true
+        self:ToggleSidebar(false)
+        
+        self.ToastManager:ShowToast({
+            Title = "Navigation",
+            Content = "Switched to " .. selectedTab.Name,
+            Type = "INFO",
+            Duration = 2
+        })
+        
+        self:DebugLog(string.format("Selected tab: %s", selectedTab.Name), "DEBUG")
+    end)
 end
 
 function NebulaUI:ToggleSidebar(forceState)
-    if forceState == nil then
-        forceState = not self.IsOpen
-    end
-    
-    self.IsOpen = forceState
-    
-    if self.IsOpen then
-        self.Overlay.Visible = true
-        TweenService:Create(self.Sidebar, TweenInfo.new(MOBILE_SETTINGS.ANIMATION_DURATION, Enum.EasingStyle.Cubic), {
-            Position = UDim2.new(0, 0, 0, 0)
-        }):Play()
-    else
-        TweenService:Create(self.Sidebar, TweenInfo.new(MOBILE_SETTINGS.ANIMATION_DURATION, Enum.EasingStyle.Cubic), {
-            Position = UDim2.new(-1, 0, 0, 0)
-        }):Play()
+    return self:MeasurePerformance("ToggleSidebar", function()
+        if forceState == nil then
+            forceState = not self.IsOpen
+        end
         
-        delay(MOBILE_SETTINGS.ANIMATION_DURATION, function()
-            self.Overlay.Visible = false
-        end)
-    end
+        self.IsOpen = forceState
+        
+        if self.IsOpen then
+            self.Overlay.Visible = true
+            TweenService:Create(self.Sidebar, TweenInfo.new(MOBILE_SETTINGS.ANIMATION_DURATION, Enum.EasingStyle.Cubic), {
+                Position = UDim2.new(0, 0, 0, 0)
+            }):Play()
+        else
+            TweenService:Create(self.Sidebar, TweenInfo.new(MOBILE_SETTINGS.ANIMATION_DURATION, Enum.EasingStyle.Cubic), {
+                Position = UDim2.new(-1, 0, 0, 0)
+            }):Play()
+            
+            task.delay(MOBILE_SETTINGS.ANIMATION_DURATION, function()
+                self.Overlay.Visible = false
+            end)
+        end
+        
+        self:DebugLog(string.format("Sidebar %s", self.IsOpen and "opened" : "closed"), "DEBUG")
+    end)
 end
 
 -- Modern UI Components
@@ -659,6 +792,8 @@ function NebulaUI:AddToggle(tabContent, options)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             isToggled = not isToggled
             updateToggle()
+            
+            self:DebugLog(string.format("Toggle '%s' set to: %s", options.Name or "Unnamed", tostring(isToggled)), "DEBUG")
         end
     end)
     
@@ -867,16 +1002,24 @@ function NebulaUI:SetTheme(themeName)
         NebulaUI_Internal.CurrentTheme = themeName
         self.Theme = MODERN_THEMES[themeName]
         -- Theme update logic would go here
+        self:DebugLog(string.format("Theme changed to: %s", themeName), "INFO")
+    else
+        self:DebugLog(string.format("Invalid theme name: %s", themeName), "WARN")
     end
 end
 
 function NebulaUI:Destroy()
     if self.GUI then
         self.GUI:Destroy()
+        self:DebugLog(string.format("Window '%s' destroyed", self.Name), "INFO")
     end
 end
 
 -- Make library available globally
 getgenv().NebulaUI = NebulaUI
+
+-- Export debug functions
+NebulaUI.DebugLog = NebulaUI.DebugLog
+NebulaUI.MeasurePerformance = NebulaUI.MeasurePerformance
 
 return NebulaUI
