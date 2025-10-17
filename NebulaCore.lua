@@ -1,7 +1,4 @@
--- Nebula UI Library v4.1
--- Modern Mobile-First GUI Framework for Roblox
--- Enhanced with Feather Icons, Advanced Animations & Performance Optimizations
-
+-- Nebula UI Library v1.1 - Fixed Version
 local Nebula = {}
 Nebula.__index = Nebula
 
@@ -162,7 +159,7 @@ local Nebula_Internal = {
         FileName = "Configuration"
     },
     ToggleUIKeybind = "K",
-    DebugMode = false,
+    DebugMode = false, -- Set to true for development
     ActiveConnections = {},
     ActiveTweens = {},
     FocusManager = {
@@ -309,9 +306,9 @@ function ConnectionTracker:Track(connection)
 end
 
 function ConnectionTracker:Cleanup()
-    for _, connection in ipairs(self.ActiveConnections) do
+    for i, connection in ipairs(self.ActiveConnections) do
         if connection and type(connection.Disconnect) == "function" then
-            connection:Disconnect()
+            pcall(function() connection:Disconnect() end)
         end
     end
     self.ActiveConnections = {}
@@ -330,7 +327,7 @@ end
 function TweenManager:CancelAll()
     for _, tween in ipairs(self.ActiveTweens) do
         if tween and tween.Cancel then
-            tween:Cancel()
+            pcall(function() tween:Cancel() end)
         end
     end
     self.ActiveTweens = {}
@@ -350,6 +347,12 @@ function NotificationManager.new(parentGUI)
 end
 
 function NotificationManager:ShowNotification(options)
+    -- Validate parent exists
+    if not self.Parent or not self.Parent.Parent then
+        warn("Nebula UI: Notification parent GUI is not available")
+        return nil
+    end
+    
     -- Add to queue if too many notifications
     if #self.ActiveNotifications >= self.MaxNotifications then
         table.insert(self.NotificationQueue, options)
@@ -466,8 +469,10 @@ end
 function NotificationManager:RepositionNotifications()
     local yOffset = -120
     for i, notif in ipairs(self.ActiveNotifications) do
-        notif.Position = UDim2.new(1, -320, 1, yOffset)
-        yOffset = yOffset - 110
+        if notif and notif.Parent then
+            notif.Position = UDim2.new(1, -320, 1, yOffset)
+            yOffset = yOffset - 110
+        end
     end
 end
 
@@ -481,7 +486,9 @@ function NotificationManager:DismissNotification(notification)
     tweenOut:Play()
     
     tweenOut.Completed:Wait()
-    notification:Destroy()
+    if notification.Parent then
+        notification:Destroy()
+    end
     
     for i, notif in ipairs(self.ActiveNotifications) do
         if notif == notification then
@@ -508,23 +515,48 @@ function NotificationManager:GetIconForType(iconType)
     return iconMap[iconType] or FEATHER_ICONS.info
 end
 
--- Ripple Effect System
+-- Ripple Effect System dengan Performance Optimization
 local RippleEffect = {}
 RippleEffect.__index = RippleEffect
 
+-- Object pooling untuk ripple effects
+RippleEffect.RipplePool = {}
+RippleEffect.MaxPoolSize = 10
+
+function RippleEffect:GetRippleFromPool()
+    if #RippleEffect.RipplePool > 0 then
+        return table.remove(RippleEffect.RipplePool)
+    end
+    return nil
+end
+
+function RippleEffect:ReturnRippleToPool(ripple)
+    if #RippleEffect.RipplePool < RippleEffect.MaxPoolSize then
+        table.insert(RippleEffect.RipplePool, ripple)
+    else
+        ripple:Destroy()
+    end
+end
+
 function RippleEffect:CreateRipple(button, position)
-    local ripple = Instance.new("Frame")
-    ripple.Name = "Ripple"
+    local ripple = self:GetRippleFromPool()
+    
+    if not ripple then
+        ripple = Instance.new("Frame")
+        ripple.Name = "Ripple"
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(1, 0)
+        corner.Parent = ripple
+    end
+    
     ripple.Size = UDim2.new(0, 0, 0, 0)
     ripple.Position = UDim2.new(0, position.X - button.AbsolutePosition.X, 0, position.Y - button.AbsolutePosition.Y)
     ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     ripple.BackgroundTransparency = 0.8
     ripple.BorderSizePixel = 0
     ripple.ZIndex = button.ZIndex + 1
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(1, 0)
-    corner.Parent = ripple
+    ripple.Visible = true
     
     ripple.Parent = button
     
@@ -542,7 +574,8 @@ function RippleEffect:CreateRipple(button, position)
     sizeTween:Play()
     
     sizeTween.Completed:Connect(function()
-        ripple:Destroy()
+        ripple.Visible = false
+        self:ReturnRippleToPool(ripple)
     end)
 end
 
@@ -555,6 +588,10 @@ local FocusManager = {
 function FocusManager:SetFocus(element)
     if self.CurrentFocus then
         table.insert(self.FocusHistory, self.CurrentFocus)
+        -- Limit history size
+        if #self.FocusHistory > 10 then
+            table.remove(self.FocusHistory, 1)
+        end
     end
     self.CurrentFocus = element
 end
@@ -571,7 +608,7 @@ function FocusManager:RestorePreviousFocus()
     return nil
 end
 
--- Window Class with Enhanced Features
+-- Window Class dengan Enhanced Features dan Comprehensive Error Handling
 local Window = {}
 Window.__index = Window
 
@@ -593,174 +630,343 @@ function Window.new(nebula, options)
     self.DragStartPosition = nil
     self.StartSize = nil
     
-    self:BuildGUI()
+    -- Debug logging
+    if Nebula_Internal.DebugMode then
+        print(string.format("Nebula UI: Creating window '%s'", self.Name))
+    end
     
-    -- Set up UI toggle keybind
-    if options.ToggleUIKeybind then
-        self:SetupToggleKeybind(options.ToggleUIKeybind)
+    local success, result = pcall(function()
+        self:BuildGUI()
+        
+        -- Set up UI toggle keybind
+        if options.ToggleUIKeybind then
+            self:SetupToggleKeybind(options.ToggleUIKeybind)
+        end
+    end)
+    
+    if not success then
+        warn(string.format("Nebula UI: Failed to create window '%s' - %s", self.Name, result))
+        -- Create minimal fallback GUI
+        self:CreateMinimalGUI()
     end
     
     return self
 end
 
-function Window:BuildGUI()
-    local theme = MODERN_THEMES[self.ThemeName]
+function Window:CreateMinimalGUI()
+    warn(string.format("Nebula UI: Creating minimal GUI fallback for '%s'", self.Name))
     
-    -- Main GUI Container
     self.GUI = Instance.new("ScreenGui")
-    self.GUI.Name = self.Name
+    self.GUI.Name = self.Name .. "_Minimal"
     self.GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     self.GUI.ResetOnSpawn = false
-    self.GUI.DisplayOrder = 10
+    self.GUI.DisplayOrder = 9999 -- Very high untuk memastikan visible
     self.GUI.Parent = CoreGui
     
-    -- Main Container
     local mainFrame = Instance.new("Frame")
-    mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 500, 0, 400)
-    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
-    mainFrame.BackgroundColor3 = theme.SURFACE
+    mainFrame.Name = "MainFrame_Minimal"
+    mainFrame.Size = UDim2.new(0, 400, 0, 300)
+    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     mainFrame.BorderSizePixel = 0
-    mainFrame.ZIndex = 10
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = mainFrame
-    
-    local shadow = Instance.new("ImageLabel")
-    shadow.Size = UDim2.new(1, 20, 1, 20)
-    shadow.Position = UDim2.new(0, -10, 0, -10)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://5554236773"
-    shadow.ImageColor3 = theme.SHADOW
-    shadow.ImageTransparency = 0.8
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-    shadow.ZIndex = mainFrame.ZIndex - 1
-    shadow.Parent = mainFrame
-    
-    -- Header with drag support
-    local header = Instance.new("Frame")
-    header.Name = "Header"
-    header.Size = UDim2.new(1, 0, 0, 40)
-    header.BackgroundColor3 = theme.PRIMARY
-    header.BorderSizePixel = 0
-    header.ZIndex = mainFrame.ZIndex + 1
-    
-    local headerCorner = Instance.new("UICorner")
-    headerCorner.CornerRadius = UDim.new(0, 8, 0, 0)
-    headerCorner.Parent = header
-    
-    -- Icon in header
-    if self.Icon then
-        local icon = Instance.new("ImageLabel")
-        icon.Name = "Icon"
-        icon.Size = UDim2.new(0, 24, 0, 24)
-        icon.Position = UDim2.new(0, 8, 0.5, -12)
-        icon.BackgroundTransparency = 1
-        icon.Image = FEATHER_ICONS[self.Icon] or self.Icon
-        icon.ImageColor3 = theme.ON_PRIMARY
-        icon.ZIndex = header.ZIndex + 1
-        icon.Parent = header
-    end
+    mainFrame.Visible = true
     
     local title = Instance.new("TextLabel")
-    title.Name = "Title"
-    title.Size = self.Icon and UDim2.new(1, -120, 1, 0) or UDim2.new(1, -80, 1, 0)
-    title.Position = self.Icon and UDim2.new(0, 40, 0, 0) or UDim2.new(0, 12, 0, 0)
-    title.BackgroundTransparency = 1
-    title.Text = self.Name
-    title.TextColor3 = theme.ON_PRIMARY
-    title.TextSize = 18
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+    title.Text = self.Name .. " (Minimal Fallback)"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextSize = 16
     title.Font = Enum.Font.SourceSansSemibold
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.ZIndex = header.ZIndex + 1
-    title.Parent = header
+    title.Parent = mainFrame
     
-    -- Close button
-    local closeButton = Instance.new("ImageButton")
-    closeButton.Name = "CloseButton"
-    closeButton.Size = UDim2.new(0, 30, 0, 30)
-    closeButton.Position = UDim2.new(1, -35, 0.5, -15)
-    closeButton.BackgroundTransparency = 1
-    closeButton.Image = FEATHER_ICONS.x
-    closeButton.ImageColor3 = theme.ON_PRIMARY
-    closeButton.ZIndex = header.ZIndex + 1
-    closeButton.Parent = header
+    local message = Instance.new("TextLabel")
+    message.Size = UDim2.new(1, -20, 1, -60)
+    message.Position = UDim2.new(0, 10, 0, 50)
+    message.BackgroundTransparency = 1
+    message.Text = "Nebula UI encountered an error during initialization. Using minimal fallback interface."
+    message.TextColor3 = Color3.fromRGB(255, 255, 255)
+    message.TextSize = 14
+    message.TextWrapped = true
+    message.Parent = mainFrame
     
-    -- Window controls
-    local minimizeButton = Instance.new("ImageButton")
-    minimizeButton.Name = "MinimizeButton"
-    minimizeButton.Size = UDim2.new(0, 30, 0, 30)
-    minimizeButton.Position = UDim2.new(1, -70, 0.5, -15)
-    minimizeButton.BackgroundTransparency = 1
-    minimizeButton.Image = FEATHER_ICONS.chevron_down
-    minimizeButton.ImageColor3 = theme.ON_PRIMARY
-    minimizeButton.ZIndex = header.ZIndex + 1
-    minimizeButton.Parent = header
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(0, 100, 0, 30)
+    closeButton.Position = UDim2.new(0.5, -50, 1, -40)
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 59, 48)
+    closeButton.Text = "Close"
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.Parent = mainFrame
     
-    -- Setup drag and resize
-    self:SetupDrag(header, mainFrame)
-    self:SetupResize(mainFrame)
-    
-    table.insert(self._connections, closeButton.MouseButton1Click:Connect(function()
+    ConnectionTracker:Track(closeButton.MouseButton1Click:Connect(function()
         self:Toggle()
     end))
     
-    table.insert(self._connections, minimizeButton.MouseButton1Click:Connect(function()
-        self:Minimize()
-    end))
-    
-    header.Parent = mainFrame
-    
-    -- Tab Container
-    local tabContainer = Instance.new("Frame")
-    tabContainer.Name = "TabContainer"
-    tabContainer.Size = UDim2.new(0, 120, 1, -40)
-    tabContainer.Position = UDim2.new(0, 0, 0, 40)
-    tabContainer.BackgroundColor3 = theme.SURFACE_VARIANT
-    tabContainer.BorderSizePixel = 0
-    tabContainer.ZIndex = mainFrame.ZIndex + 1
-    
-    local tabList = Instance.new("ScrollingFrame")
-    tabList.Name = "TabList"
-    tabList.Size = UDim2.new(1, 0, 1, 0)
-    tabList.BackgroundTransparency = 1
-    tabList.ScrollBarThickness = 3
-    tabList.ScrollBarImageColor3 = theme.OUTLINE
-    tabList.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    tabList.ScrollingDirection = Enum.ScrollingDirection.Y
-    tabList.ZIndex = tabContainer.ZIndex + 1
-    tabList.Parent = tabContainer
-    
-    local tabLayout = Instance.new("UIListLayout")
-    tabLayout.Parent = tabList
-    
-    -- Content Container
-    local contentContainer = Instance.new("Frame")
-    contentContainer.Name = "ContentContainer"
-    contentContainer.Size = UDim2.new(1, -120, 1, -40)
-    contentContainer.Position = UDim2.new(0, 120, 0, 40)
-    contentContainer.BackgroundTransparency = 1
-    contentContainer.ClipsDescendants = true
-    contentContainer.ZIndex = mainFrame.ZIndex + 1
-    contentContainer.Parent = mainFrame
-    
-    self.MainFrame = mainFrame
-    self.TabList = tabList
-    self.ContentContainer = contentContainer
-    self.NotificationManager = NotificationManager.new(self.GUI)
-    
     mainFrame.Parent = self.GUI
+    self.MainFrame = mainFrame
     
-    -- Initially hidden
+    -- Enable immediately untuk fallback
+    self.GUI.Enabled = true
+    self.IsOpen = true
+end
+
+function Window:BuildGUI()
+    local theme = MODERN_THEMES[self.ThemeName]
+    
+    -- Debug logging
+    if Nebula_Internal.DebugMode then
+        print(string.format("Nebula UI: Building GUI for window '%s'", self.Name))
+    end
+    
+    -- Safe GUI creation dengan error boundary
+    local success, result = pcall(function()
+        -- Main GUI Container
+        self.GUI = Instance.new("ScreenGui")
+        self.GUI.Name = self.Name
+        self.GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        self.GUI.ResetOnSpawn = false
+        self.GUI.DisplayOrder = 100  -- Increased untuk memastikan di atas element lain
+        self.GUI.IgnoreGuiInset = true  -- Untuk mobile compatibility
+        
+        -- Verify CoreGui exists
+        if not CoreGui or not CoreGui:IsDescendantOf(game) then
+            error("CoreGui tidak tersedia atau invalid")
+        end
+        
+        self.GUI.Parent = CoreGui
+        
+        -- Main Container dengan explicit size dan position
+        local mainFrame = Instance.new("Frame")
+        mainFrame.Name = "MainFrame"
+        mainFrame.Size = UDim2.new(0, 500, 0, 400)
+        mainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+        mainFrame.BackgroundColor3 = theme.SURFACE
+        mainFrame.BorderSizePixel = 0
+        mainFrame.ZIndex = 10
+        mainFrame.Visible = true  -- Explicitly visible
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 8)
+        corner.Parent = mainFrame
+        
+        -- Enhanced shadow dengan fallback
+        local shadow = Instance.new("ImageLabel")
+        shadow.Name = "Shadow"
+        shadow.Size = UDim2.new(1, 20, 1, 20)
+        shadow.Position = UDim2.new(0, -10, 0, -10)
+        shadow.BackgroundTransparency = 1
+        shadow.Image = "rbxassetid://5554236773"
+        shadow.ImageColor3 = theme.SHADOW
+        shadow.ImageTransparency = 0.8
+        shadow.ScaleType = Enum.ScaleType.Slice
+        shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+        shadow.ZIndex = mainFrame.ZIndex - 1
+        shadow.Parent = mainFrame
+        
+        -- Header dengan enhanced visibility
+        local header = Instance.new("Frame")
+        header.Name = "Header"
+        header.Size = UDim2.new(1, 0, 0, 40)
+        header.BackgroundColor3 = theme.PRIMARY
+        header.BorderSizePixel = 0
+        header.ZIndex = mainFrame.ZIndex + 1
+        header.Visible = true
+        
+        local headerCorner = Instance.new("UICorner")
+        headerCorner.CornerRadius = UDim.new(0, 8, 0, 0)
+        headerCorner.Parent = header
+        
+        -- Icon in header dengan fallback
+        if self.Icon then
+            local iconSuccess, iconResult = pcall(function()
+                local icon = Instance.new("ImageLabel")
+                icon.Name = "Icon"
+                icon.Size = UDim2.new(0, 24, 0, 24)
+                icon.Position = UDim2.new(0, 8, 0.5, -12)
+                icon.BackgroundTransparency = 1
+                icon.Image = FEATHER_ICONS[self.Icon] or self.Icon
+                icon.ImageColor3 = theme.ON_PRIMARY
+                icon.ZIndex = header.ZIndex + 1
+                icon.Visible = true
+                icon.Parent = header
+            end)
+            
+            if not iconSuccess and Nebula_Internal.DebugMode then
+                warn(string.format("Nebula UI: Failed to create icon - %s", iconResult))
+            end
+        end
+        
+        -- Title dengan explicit properties
+        local title = Instance.new("TextLabel")
+        title.Name = "Title"
+        title.Size = self.Icon and UDim2.new(1, -120, 1, 0) or UDim2.new(1, -80, 1, 0)
+        title.Position = self.Icon and UDim2.new(0, 40, 0, 0) or UDim2.new(0, 12, 0, 0)
+        title.BackgroundTransparency = 1
+        title.Text = self.Name
+        title.TextColor3 = theme.ON_PRIMARY
+        title.TextSize = 18
+        title.Font = Enum.Font.SourceSansSemibold
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.ZIndex = header.ZIndex + 1
+        title.Visible = true
+        title.Parent = header
+        
+        -- Enhanced Close button dengan better error handling
+        local closeButton = Instance.new("ImageButton")
+        closeButton.Name = "CloseButton"
+        closeButton.Size = UDim2.new(0, 30, 0, 30)
+        closeButton.Position = UDim2.new(1, -35, 0.5, -15)
+        closeButton.BackgroundTransparency = 1
+        closeButton.Image = FEATHER_ICONS.x
+        closeButton.ImageColor3 = theme.ON_PRIMARY
+        closeButton.ZIndex = header.ZIndex + 1
+        closeButton.Visible = true
+        closeButton.Parent = header
+        
+        -- Window controls dengan fallback
+        local minimizeButton = Instance.new("ImageButton")
+        minimizeButton.Name = "MinimizeButton"
+        minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+        minimizeButton.Position = UDim2.new(1, -70, 0.5, -15)
+        minimizeButton.BackgroundTransparency = 1
+        minimizeButton.Image = FEATHER_ICONS.chevron_down
+        minimizeButton.ImageColor3 = theme.ON_PRIMARY
+        minimizeButton.ZIndex = header.ZIndex + 1
+        minimizeButton.Visible = true
+        minimizeButton.Parent = header
+        
+        -- Setup drag and resize dengan error boundary
+        local setupSuccess, setupResult = pcall(function()
+            self:SetupDrag(header, mainFrame)
+            self:SetupResize(mainFrame)
+        end)
+        
+        if not setupSuccess and Nebula_Internal.DebugMode then
+            warn(string.format("Nebula UI: Drag/Resize setup failed - %s", setupResult))
+        end
+        
+        -- Enhanced connection handling dengan validation
+        local closeConnection = ConnectionTracker:Track(closeButton.MouseButton1Click:Connect(function()
+            local toggleSuccess, toggleError = pcall(function()
+                self:Toggle()
+            end)
+            if not toggleSuccess then
+                warn(string.format("Nebula UI: Close button toggle failed - %s", toggleError))
+            end
+        end))
+        
+        table.insert(self._connections, closeConnection)
+        
+        local minimizeConnection = ConnectionTracker:Track(minimizeButton.MouseButton1Click:Connect(function()
+            local minimizeSuccess, minimizeError = pcall(function()
+                self:Minimize()
+            end)
+            if not minimizeSuccess then
+                warn(string.format("Nebula UI: Minimize failed - %s", minimizeError))
+            end
+        end))
+        
+        table.insert(self._connections, minimizeConnection)
+        
+        header.Parent = mainFrame
+        
+        -- Enhanced Tab Container dengan better scrolling
+        local tabContainer = Instance.new("Frame")
+        tabContainer.Name = "TabContainer"
+        tabContainer.Size = UDim2.new(0, 120, 1, -40)
+        tabContainer.Position = UDim2.new(0, 0, 0, 40)
+        tabContainer.BackgroundColor3 = theme.SURFACE_VARIANT
+        tabContainer.BorderSizePixel = 0
+        tabContainer.ZIndex = mainFrame.ZIndex + 1
+        tabContainer.Visible = true
+        
+        local tabList = Instance.new("ScrollingFrame")
+        tabList.Name = "TabList"
+        tabList.Size = UDim2.new(1, 0, 1, 0)
+        tabList.BackgroundTransparency = 1
+        tabList.ScrollBarThickness = 3
+        tabList.ScrollBarImageColor3 = theme.OUTLINE
+        tabList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        tabList.ScrollingDirection = Enum.ScrollingDirection.Y
+        tabList.CanvasSize = UDim2.new(0, 0, 0, 0) -- Will be updated automatically
+        tabList.ZIndex = tabContainer.ZIndex + 1
+        tabList.Visible = true
+        
+        local tabLayout = Instance.new("UIListLayout")
+        tabLayout.Padding = UDim.new(0, 4)
+        tabLayout.Parent = tabList
+        
+        -- Auto-update canvas size
+        ConnectionTracker:Track(tabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            if tabList then
+                tabList.CanvasSize = UDim2.new(0, 0, 0, tabLayout.AbsoluteContentSize.Y)
+            end
+        end))
+        
+        tabList.Parent = tabContainer
+        
+        -- Enhanced Content Container dengan explicit properties
+        local contentContainer = Instance.new("Frame")
+        contentContainer.Name = "ContentContainer"
+        contentContainer.Size = UDim2.new(1, -120, 1, -40)
+        contentContainer.Position = UDim2.new(0, 120, 0, 40)
+        contentContainer.BackgroundTransparency = 1
+        contentContainer.ClipsDescendants = true
+        contentContainer.ZIndex = mainFrame.ZIndex + 1
+        contentContainer.Visible = true
+        
+        self.MainFrame = mainFrame
+        self.TabList = tabList
+        self.ContentContainer = contentContainer
+        self.NotificationManager = NotificationManager.new(self.GUI)
+        
+        -- Parent hierarchy dengan validation
+        tabContainer.Parent = mainFrame
+        contentContainer.Parent = mainFrame
+        mainFrame.Parent = self.GUI
+        
+        -- Verify semua element ter-parent dengan benar
+        if not mainFrame.Parent then
+            error("MainFrame failed to parent to GUI")
+        end
+        
+        if Nebula_Internal.DebugMode then
+            print(string.format("Nebula UI: GUI built successfully for '%s'", self.Name))
+        end
+        
+    end)
+    
+    if not success then
+        -- Critical error - log dan coba fallback
+        local errorMsg = string.format("Nebula UI: CRITICAL - Failed to build GUI for '%s' - %s", self.Name, result)
+        warn(errorMsg)
+        
+        -- Fallback: create minimal GUI
+        self:CreateMinimalGUI()
+        return
+    end
+    
+    -- Initially hidden TAPI dengan safety check
     self.GUI.Enabled = false
+    
+    -- Safety timeout untuk memastikan GUI ready
+    delay(0.1, function()
+        if self.GUI and self.GUI.Parent then
+            if Nebula_Internal.DebugMode then
+                print(string.format("Nebula UI: GUI safety check passed for '%s'", self.Name))
+            end
+        else
+            warn(string.format("Nebula UI: GUI safety check FAILED for '%s'", self.Name))
+        end
+    end)
 end
 
 function Window:SetupDrag(dragElement, targetElement)
     local dragStart, startPos
     
     local function update(input)
+        if not self.IsDragging then return end
+        
         local delta = input.Position - dragStart
         targetElement.Position = UDim2.new(
             startPos.X.Scale, startPos.X.Offset + delta.X,
@@ -810,6 +1016,8 @@ function Window:SetupResize(targetElement)
     local resizeStart, startSize, startPos
     
     local function update(input)
+        if not self.IsResizing then return end
+        
         local delta = input.Position - resizeStart
         local newSize = UDim2.new(
             startSize.X.Scale, math.max(400, startSize.X.Offset + delta.X),
@@ -849,46 +1057,193 @@ function Window:SetupToggleKeybind(keybind)
         return
     end
     
-    local connection = ContextActionService:BindAction("ToggleNebulaUI", function(_, inputState)
-        if inputState == Enum.UserInputState.Begin then
-            self:Toggle()
-        end
-    end, false, keyCode)
+    local connection
+    local success, result = pcall(function()
+        connection = ContextActionService:BindAction("ToggleNebulaUI_" .. self.Name, function(_, inputState)
+            if inputState == Enum.UserInputState.Begin then
+                self:Toggle()
+            end
+        end, false, keyCode)
+    end)
     
-    table.insert(self._connections, {Disconnect = function() ContextActionService:UnbindAction("ToggleNebulaUI") end})
+    if success then
+        table.insert(self._connections, {
+            Disconnect = function() 
+                ContextActionService:UnbindAction("ToggleNebulaUI_" .. self.Name) 
+            end
+        })
+    else
+        warn("Nebula UI: Failed to bind keybind - " .. result)
+        
+        -- Fallback ke UserInputService
+        local inputConnection = UserInputService.InputBegan:Connect(function(input)
+            if input.KeyCode == keyCode then
+                self:Toggle()
+            end
+        end)
+        
+        table.insert(self._connections, inputConnection)
+    end
 end
 
+-- Enhanced Window:Toggle() method dengan comprehensive error handling
 function Window:Toggle()
-    self.IsOpen = not self.IsOpen
-    self.GUI.Enabled = self.IsOpen
+    if not self.GUI or not self.GUI.Parent then
+        warn("Nebula UI: Cannot toggle - GUI not properly initialized")
+        return
+    end
     
-    if self.IsOpen then
-        self.MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
-        self.MainFrame.Size = UDim2.new(0, 500, 0, 0)
+    -- Cancel any active tweens pertama untuk prevent conflict
+    for _, tween in ipairs(self._activeTweens) do
+        if tween and tween.Cancel then
+            pcall(function() tween:Cancel() end)
+        end
+    end
+    self._activeTweens = {}
+    
+    self.IsOpen = not self.IsOpen
+    
+    if Nebula_Internal.DebugMode then
+        print(string.format("Nebula UI: Toggling window '%s' to %s", self.Name, tostring(self.IsOpen)))
+    end
+    
+    local success, result = pcall(function()
+        if self.IsOpen then
+            -- SHOW WINDOW sequence
+            self.GUI.Enabled = true
+            
+            -- Reset position dan size
+            self.MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+            self.MainFrame.Size = UDim2.new(0, 500, 0, 0)
+            self.MainFrame.Visible = true
+            
+            -- Animate in dengan safety timeout
+            local tweenInfo = TweenInfo.new(
+                0.3, 
+                Enum.EasingStyle.Back, 
+                Enum.EasingDirection.Out,
+                0, -- RepeatCount
+                false, -- Reverses
+                0 -- DelayTime
+            )
+            
+            local tween = TweenService:Create(self.MainFrame, tweenInfo, {
+                Size = UDim2.new(0, 500, 0, 400)
+            })
+            
+            TweenManager:Track(tween)
+            table.insert(self._activeTweens, tween)
+            
+            tween:Play()
+            
+            -- Safety timeout untuk memastikan animation complete
+            local safetyTimeout = 5 -- seconds
+            local startTime = os.time()
+            
+            coroutine.wrap(function()
+                while os.time() - startTime < safetyTimeout do
+                    if self.MainFrame and self.MainFrame.Size.Y.Offset > 350 then -- Close enough to target
+                        if Nebula_Internal.DebugMode then
+                            print(string.format("Nebula UI: Window '%s' open animation completed", self.Name))
+                        end
+                        break
+                    end
+                    wait(0.1)
+                end
+                
+                -- Force final state jika timeout
+                if self.MainFrame and self.MainFrame.Size.Y.Offset < 350 then
+                    warn(string.format("Nebula UI: Window '%s' open animation timeout, forcing final state", self.Name))
+                    self.MainFrame.Size = UDim2.new(0, 500, 0, 400)
+                end
+            end)()
+            
+        else
+            -- HIDE WINDOW sequence
+            local tweenInfo = TweenInfo.new(
+                0.2, 
+                Enum.EasingStyle.Cubic, 
+                Enum.EasingDirection.In,
+                0, -- RepeatCount
+                false, -- Reverses
+                0 -- DelayTime
+            )
+            
+            local tween = TweenService:Create(self.MainFrame, tweenInfo, {
+                Size = UDim2.new(0, 500, 0, 0)
+            })
+            
+            TweenManager:Track(tween)
+            table.insert(self._activeTweens, tween)
+            
+            tween:Play()
+            
+            -- Use Completed event dengan error handling
+            local completedConnection
+            completedConnection = tween.Completed:Connect(function()
+                -- Clean up connection
+                if completedConnection then
+                    completedConnection:Disconnect()
+                end
+                
+                -- Only disable if still supposed to be closed
+                if not self.IsOpen and self.GUI then
+                    self.GUI.Enabled = false
+                    if Nebula_Internal.DebugMode then
+                        print(string.format("Nebula UI: Window '%s' closed successfully", self.Name))
+                    end
+                end
+            end)
+            
+            -- Safety timeout untuk memastikan animation complete
+            local safetyTimeout = 3 -- seconds
+            local startTime = os.time()
+            
+            coroutine.wrap(function()
+                while os.time() - startTime < safetyTimeout do
+                    if self.MainFrame and self.MainFrame.Size.Y.Offset < 10 then -- Close enough to closed
+                        break
+                    end
+                    wait(0.1)
+                end
+                
+                -- Force final state jika timeout
+                if self.MainFrame and self.MainFrame.Size.Y.Offset > 10 then
+                    warn(string.format("Nebula UI: Window '%s' close animation timeout, forcing final state", self.Name))
+                    self.MainFrame.Size = UDim2.new(0, 500, 0, 0)
+                    if self.GUI then
+                        self.GUI.Enabled = false
+                    end
+                end
+            end)()
+        end
+    end)
+    
+    if not success then
+        local errorMsg = string.format("Nebula UI: Toggle failed for '%s' - %s", self.Name, result)
+        warn(errorMsg)
         
-        local tween = TweenService:Create(self.MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 500, 0, 400)
-        })
-        table.insert(self._activeTweens, tween)
-        tween:Play()
-    else
-        local tween = TweenService:Create(self.MainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.In), {
-            Size = UDim2.new(0, 500, 0, 0)
-        })
-        table.insert(self._activeTweens, tween)
-        tween:Play()
-        
-        tween.Completed:Wait()
-        self.GUI.Enabled = false
+        -- Fallback: langsung set state tanpa animation
+        if self.GUI then
+            self.GUI.Enabled = self.IsOpen
+            if self.IsOpen and self.MainFrame then
+                self.MainFrame.Size = UDim2.new(0, 500, 0, 400)
+            elseif self.MainFrame then
+                self.MainFrame.Size = UDim2.new(0, 500, 0, 0)
+            end
+        end
     end
 end
 
 function Window:Minimize()
+    if not self.MainFrame then return end
+    
     local targetSize = self.MainFrame.Size.Y.Offset == 40 and UDim2.new(0, 500, 0, 400) or UDim2.new(0, 500, 0, 40)
     
     local tween = TweenService:Create(self.MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {
         Size = targetSize
     })
+    TweenManager:Track(tween)
     table.insert(self._activeTweens, tween)
     tween:Play()
 end
@@ -965,7 +1320,7 @@ function Window:CreateTab(name, icon)
     
     table.insert(self.Tabs, tab)
     
-    -- Tab selection logic with animation
+    -- Tab selection logic dengan animation
     table.insert(tab._connections, tabButton.MouseButton1Click:Connect(function()
         self:SelectTab(tab)
     end))
@@ -1003,7 +1358,7 @@ function Window:SelectTab(selectedTab)
             local hideTween = TweenService:Create(tab.Content, TweenInfo.new(0.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {
                 Position = UDim2.new(-0.1, 0, 0, 0)
             })
-            table.insert(self._activeTweens, hideTween)
+            TweenManager:Track(hideTween)
             hideTween:Play()
             hideTween.Completed:Wait()
         end
@@ -1017,14 +1372,14 @@ function Window:SelectTab(selectedTab)
         end
     end
     
-    -- Show selected tab with animation
+    -- Show selected tab dengan animation
     selectedTab.Content.Visible = true
     selectedTab.Content.Position = UDim2.new(1.1, 0, 0, 0)
     
     local showTween = TweenService:Create(selectedTab.Content, TweenInfo.new(0.3, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {
         Position = UDim2.new(0, 0, 0, 0)
     })
-    table.insert(self._activeTweens, showTween)
+    TweenManager:Track(showTween)
     showTween:Play()
     
     selectedTab.Button.TextColor3 = MODERN_THEMES[self.ThemeName].PRIMARY
@@ -1036,8 +1391,13 @@ function Window:SelectTab(selectedTab)
     end
 end
 
--- UI Elements with Enhanced Features
+-- UI Elements dengan Enhanced Features
 function Window:CreateButton(tab, options)
+    if not tab or not tab.Content then
+        warn("Nebula UI: Invalid tab provided to CreateButton")
+        return nil
+    end
+    
     local theme = MODERN_THEMES[self.ThemeName]
     
     local button = Instance.new("TextButton")
@@ -1076,46 +1436,37 @@ function Window:CreateButton(tab, options)
     end
     
     -- Hover effects
-    button.MouseEnter:Connect(function()
+    ConnectionTracker:Track(button.MouseEnter:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {
             BackgroundColor3 = theme.PRIMARY_LIGHT
         }):Play()
-    end)
+    end))
     
-    button.MouseLeave:Connect(function()
+    ConnectionTracker:Track(button.MouseLeave:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {
             BackgroundColor3 = theme.PRIMARY
         }):Play()
-    end)
+    end))
     
-    -- Click handler with error boundary
+    -- Click handler dengan error boundary
     if options.Callback then
-        button.InputBegan:Connect(createRipple)
+        ConnectionTracker:Track(button.InputBegan:Connect(createRipple))
         
-        button.MouseButton1Click:Connect(function()
+        ConnectionTracker:Track(button.MouseButton1Click:Connect(function()
             local success, result = pcall(options.Callback)
             if not success then
                 warn("Nebula UI: Button callback error - " .. result)
-                self.NotificationManager:ShowNotification({
-                    Title = "Error",
-                    Content = "Button action failed: " .. result,
-                    Image = "error",
-                    Duration = 5
-                })
+                if self.NotificationManager then
+                    self.NotificationManager:ShowNotification({
+                        Title = "Error",
+                        Content = "Button action failed: " .. result,
+                        Image = "error",
+                        Duration = 5
+                    })
+                end
             end
-        end)
+        end))
     end
-    
-    -- Keyboard support
-    button.MouseButton2Click:Connect(function()
-        -- Right click also triggers for accessibility
-        if options.Callback then
-            local success, result = pcall(options.Callback)
-            if not success then
-                warn("Nebula UI: Button callback error - " .. result)
-            end
-        end
-    end)
     
     button.Parent = tab.Content
     
@@ -1123,6 +1474,11 @@ function Window:CreateButton(tab, options)
 end
 
 function Window:CreateToggle(tab, options)
+    if not tab or not tab.Content then
+        warn("Nebula UI: Invalid tab provided to CreateToggle")
+        return nil
+    end
+    
     local theme = MODERN_THEMES[self.ThemeName]
     
     local toggleContainer = Instance.new("Frame")
@@ -1192,12 +1548,14 @@ function Window:CreateToggle(tab, options)
             local success, result = pcall(options.Callback, isToggled)
             if not success then
                 warn("Nebula UI: Toggle callback error - " .. result)
-                self.NotificationManager:ShowNotification({
-                    Title = "Error",
-                    Content = "Toggle action failed: " .. result,
-                    Image = "error",
-                    Duration = 5
-                })
+                if self.NotificationManager then
+                    self.NotificationManager:ShowNotification({
+                        Title = "Error",
+                        Content = "Toggle action failed: " .. result,
+                        Image = "error",
+                        Duration = 5
+                    })
+                end
             end
         end
         
@@ -1207,19 +1565,11 @@ function Window:CreateToggle(tab, options)
     end
     
     -- Mouse input
-    toggleSwitch.MouseButton1Click:Connect(function()
+    ConnectionTracker:Track(toggleSwitch.MouseButton1Click:Connect(function()
         isToggled = not isToggled
         updateToggle()
         RippleEffect:CreateRipple(toggleSwitch, Vector2.new(toggleSwitch.AbsolutePosition.X + toggleSwitch.AbsoluteSize.X/2, toggleSwitch.AbsolutePosition.Y + toggleSwitch.AbsoluteSize.Y/2))
-    end)
-    
-    -- Keyboard support
-    toggleSwitch.InputBegan:Connect(function(input)
-        if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.Return then
-            isToggled = not isToggled
-            updateToggle()
-        end
-    end)
+    end))
     
     updateToggle()
     toggleContainer.Parent = tab.Content
@@ -1236,6 +1586,11 @@ function Window:CreateToggle(tab, options)
 end
 
 function Window:CreateSlider(tab, options)
+    if not tab or not tab.Content then
+        warn("Nebula UI: Invalid tab provided to CreateSlider")
+        return nil
+    end
+    
     local theme = MODERN_THEMES[self.ThemeName]
     
     local sliderContainer = Instance.new("Frame")
@@ -1380,10 +1735,10 @@ function Window:CreateSlider(tab, options)
         tooltip.Visible = false
     end
     
-    -- Input handling with proper drag system
-    track.InputBegan:Connect(onInput)
+    -- Input handling dengan proper drag system
+    ConnectionTracker:Track(track.InputBegan:Connect(onInput))
     
-    track.InputChanged:Connect(function(input)
+    ConnectionTracker:Track(track.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             if isDragging then
                 local relativeX = math.clamp(input.Position.X - track.AbsolutePosition.X, 0, track.AbsoluteSize.X)
@@ -1391,13 +1746,13 @@ function Window:CreateSlider(tab, options)
                 updateSlider(percentage * (maxValue - minValue) + minValue, true)
             end
         end
-    end)
+    end))
     
-    UserInputService.InputEnded:Connect(function(input)
+    ConnectionTracker:Track(UserInputService.InputEnded:Connect(function(input)
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and isDragging then
             endDrag()
         end
-    end)
+    end))
     
     updateSlider(currentValue, false)
     sliderContainer.Parent = tab.Content
@@ -1413,6 +1768,11 @@ function Window:CreateSlider(tab, options)
 end
 
 function Window:CreateInput(tab, options)
+    if not tab or not tab.Content then
+        warn("Nebula UI: Invalid tab provided to CreateInput")
+        return nil
+    end
+    
     local theme = MODERN_THEMES[self.ThemeName]
     
     local inputContainer = Instance.new("Frame")
@@ -1442,15 +1802,15 @@ function Window:CreateInput(tab, options)
     padding.Parent = textBox
     
     -- Focus management
-    textBox.Focused:Connect(function()
+    ConnectionTracker:Track(textBox.Focused:Connect(function()
         FocusManager:SetFocus(textBox)
         TweenService:Create(textBox, TweenInfo.new(0.2), {
             BackgroundColor3 = theme.PRIMARY_LIGHT,
             TextColor3 = theme.ON_PRIMARY
         }):Play()
-    end)
+    end))
     
-    textBox.FocusLost:Connect(function()
+    ConnectionTracker:Track(textBox.FocusLost:Connect(function(enterPressed)
         FocusManager:ClearFocus()
         TweenService:Create(textBox, TweenInfo.new(0.2), {
             BackgroundColor3 = theme.SURFACE_VARIANT,
@@ -1458,22 +1818,24 @@ function Window:CreateInput(tab, options)
         }):Play()
         
         if options.Callback then
-            local success, result = pcall(options.Callback, textBox.Text)
+            local success, result = pcall(options.Callback, textBox.Text, enterPressed)
             if not success then
                 warn("Nebula UI: Input callback error - " .. result)
-                self.NotificationManager:ShowNotification({
-                    Title = "Error",
-                    Content = "Input action failed: " .. result,
-                    Image = "error",
-                    Duration = 5
-                })
+                if self.NotificationManager then
+                    self.NotificationManager:ShowNotification({
+                        Title = "Error",
+                        Content = "Input action failed: " .. result,
+                        Image = "error",
+                        Duration = 5
+                    })
+                end
             end
         end
         
         if options.Flag then
             ConfigurationSystem:SetFlag(options.Flag, textBox.Text)
         end
-    end)
+    end))
     
     if options.Flag then
         textBox.Text = ConfigurationSystem:GetFlag(options.Flag, options.CurrentValue or "")
@@ -1496,6 +1858,11 @@ function Window:CreateInput(tab, options)
 end
 
 function Window:CreateDropdown(tab, options)
+    if not tab or not tab.Content then
+        warn("Nebula UI: Invalid tab provided to CreateDropdown")
+        return nil
+    end
+    
     local theme = MODERN_THEMES[self.ThemeName]
     
     local dropdownContainer = Instance.new("Frame")
@@ -1607,19 +1974,19 @@ function Window:CreateDropdown(tab, options)
         optionPadding.PaddingRight = UDim.new(0, 8)
         optionPadding.Parent = optionButton
         
-        optionButton.MouseEnter:Connect(function()
+        ConnectionTracker:Track(optionButton.MouseEnter:Connect(function()
             optionButton.BackgroundColor3 = theme.PRIMARY
             optionButton.TextColor3 = theme.ON_PRIMARY
-        end)
+        end))
         
-        optionButton.MouseLeave:Connect(function()
+        ConnectionTracker:Track(optionButton.MouseLeave:Connect(function()
             if not (options.MultipleOptions and table.find(currentOptions, option)) then
                 optionButton.BackgroundColor3 = theme.SURFACE_VARIANT
                 optionButton.TextColor3 = theme.ON_SURFACE
             end
-        end)
+        end))
         
-        optionButton.MouseButton1Click:Connect(function()
+        ConnectionTracker:Track(optionButton.MouseButton1Click:Connect(function()
             if options.MultipleOptions then
                 local found = false
                 for i, opt in ipairs(currentOptions) do
@@ -1661,7 +2028,7 @@ function Window:CreateDropdown(tab, options)
             if options.Flag then
                 ConfigurationSystem:SetFlag(options.Flag, currentOptions)
             end
-        end)
+        end))
         
         return optionButton
     end
@@ -1685,7 +2052,7 @@ function Window:CreateDropdown(tab, options)
     if options.Searchable then
         local searchBox = optionsFrame:FindFirstChild("SearchBox")
         if searchBox then
-            searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+            ConnectionTracker:Track(searchBox:GetPropertyChangedSignal("Text"):Connect(function()
                 local searchText = string.lower(searchBox.Text)
                 if searchText == "" then
                     filteredOptions = options.Options
@@ -1698,14 +2065,14 @@ function Window:CreateDropdown(tab, options)
                     end
                 end
                 populateOptions()
-            end)
+            end))
         end
     end
     
     -- Initial population
     populateOptions()
     
-    dropdownButton.MouseButton1Click:Connect(function()
+    ConnectionTracker:Track(dropdownButton.MouseButton1Click:Connect(function()
         isOpen = not isOpen
         optionsFrame.Visible = isOpen
         
@@ -1724,9 +2091,10 @@ function Window:CreateDropdown(tab, options)
                 Rotation = 0
             }):Play()
         end
-    end)
+    end))
     
     -- Close dropdown when clicking outside
+    local closeDropdownConnection
     local function closeDropdown(input)
         if isOpen and input.UserInputType == Enum.UserInputType.MouseButton1 then
             local isInBounds = dropdownContainer.AbsolutePosition:X() <= input.Position.X and input.Position.X <= dropdownContainer.AbsolutePosition:X() + dropdownContainer.AbsoluteSize:X() and
@@ -1745,7 +2113,8 @@ function Window:CreateDropdown(tab, options)
         end
     end
     
-    UserInputService.InputBegan:Connect(closeDropdown)
+    closeDropdownConnection = UserInputService.InputBegan:Connect(closeDropdown)
+    table.insert(self._connections, closeDropdownConnection)
     
     updateDropdown()
     
@@ -1779,6 +2148,11 @@ end
 
 -- New UI Elements
 function Window:CreateKeybind(tab, options)
+    if not tab or not tab.Content then
+        warn("Nebula UI: Invalid tab provided to CreateKeybind")
+        return nil
+    end
+    
     local theme = MODERN_THEMES[self.ThemeName]
     
     local keybindContainer = Instance.new("Frame")
@@ -1832,12 +2206,12 @@ function Window:CreateKeybind(tab, options)
         end
     end
     
-    keybindButton.MouseButton1Click:Connect(function()
+    ConnectionTracker:Track(keybindButton.MouseButton1Click:Connect(function()
         listening = true
         keybindButton.Text = "Listening..."
         keybindButton.BackgroundColor3 = theme.PRIMARY
         keybindButton.TextColor3 = theme.ON_PRIMARY
-    end)
+    end))
     
     local inputConnection
     inputConnection = UserInputService.InputBegan:Connect(function(input)
@@ -1875,6 +2249,11 @@ function Window:CreateKeybind(tab, options)
 end
 
 function Window:CreateColorPicker(tab, options)
+    if not tab or not tab.Content then
+        warn("Nebula UI: Invalid tab provided to CreateColorPicker")
+        return nil
+    end
+    
     local theme = MODERN_THEMES[self.ThemeName]
     
     local colorPickerContainer = Instance.new("Frame")
@@ -1913,44 +2292,107 @@ function Window:CreateColorPicker(tab, options)
         currentColor = ConfigurationSystem:GetFlag(options.Flag, currentColor)
     end
     
-    -- Color picker modal (simplified version)
+    -- Enhanced Color Picker Modal
     local function showColorPicker()
-        -- This would open a full color picker modal in a complete implementation
-        -- For now, we'll just cycle through some preset colors
+        -- Create color picker modal
+        local colorPickerModal = Instance.new("Frame")
+        colorPickerModal.Name = "ColorPickerModal"
+        colorPickerModal.Size = UDim2.new(0, 300, 0, 200)
+        colorPickerModal.Position = UDim2.new(0.5, -150, 0.5, -100)
+        colorPickerModal.BackgroundColor3 = theme.SURFACE
+        colorPickerModal.BorderSizePixel = 0
+        colorPickerModal.ZIndex = 1000
+        
+        local modalCorner = Instance.new("UICorner")
+        modalCorner.CornerRadius = UDim.new(0, 8)
+        modalCorner.Parent = colorPickerModal
+        
+        local modalShadow = Instance.new("ImageLabel")
+        modalShadow.Size = UDim2.new(1, 20, 1, 20)
+        modalShadow.Position = UDim2.new(0, -10, 0, -10)
+        modalShadow.BackgroundTransparency = 1
+        modalShadow.Image = "rbxassetid://5554236773"
+        modalShadow.ImageColor3 = theme.SHADOW
+        modalShadow.ImageTransparency = 0.8
+        modalShadow.ScaleType = Enum.ScaleType.Slice
+        modalShadow.SliceCenter = Rect.new(10, 10, 118, 118)
+        modalShadow.ZIndex = colorPickerModal.ZIndex - 1
+        modalShadow.Parent = colorPickerModal
+        
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(1, 0, 0, 40)
+        title.BackgroundColor3 = theme.PRIMARY
+        title.Text = "Color Picker"
+        title.TextColor3 = theme.ON_PRIMARY
+        title.TextSize = 16
+        title.Font = Enum.Font.SourceSansSemibold
+        title.Parent = colorPickerModal
+        
+        -- Color spectrum (simplified - menggunakan preset colors)
         local presetColors = {
-            Color3.fromRGB(255, 0, 0),
-            Color3.fromRGB(0, 255, 0),
-            Color3.fromRGB(0, 0, 255),
-            Color3.fromRGB(255, 255, 0),
-            Color3.fromRGB(255, 0, 255),
-            Color3.fromRGB(0, 255, 255),
-            Color3.fromRGB(255, 255, 255)
+            Color3.fromRGB(255, 0, 0),    -- Red
+            Color3.fromRGB(0, 255, 0),    -- Green
+            Color3.fromRGB(0, 0, 255),    -- Blue
+            Color3.fromRGB(255, 255, 0),  -- Yellow
+            Color3.fromRGB(255, 0, 255),  -- Magenta
+            Color3.fromRGB(0, 255, 255),  -- Cyan
+            Color3.fromRGB(255, 255, 255),-- White
+            Color3.fromRGB(0, 0, 0),      -- Black
+            Color3.fromRGB(128, 128, 128),-- Gray
+            Color3.fromRGB(255, 165, 0)   -- Orange
         }
         
-        local currentIndex = 1
+        local colorGrid = Instance.new("Frame")
+        colorGrid.Size = UDim2.new(1, -20, 0, 100)
+        colorGrid.Position = UDim2.new(0, 10, 0, 50)
+        colorGrid.BackgroundTransparency = 1
+        colorGrid.Parent = colorPickerModal
+        
+        -- Create color buttons
         for i, color in ipairs(presetColors) do
-            if color == currentColor then
-                currentIndex = i
-                break
-            end
+            local colorButton = Instance.new("TextButton")
+            colorButton.Size = UDim2.new(0, 40, 0, 40)
+            colorButton.Position = UDim2.new(0, ((i-1) % 5) * 50, 0, math.floor((i-1) / 5) * 50)
+            colorButton.BackgroundColor3 = color
+            colorButton.BorderSizePixel = 0
+            colorButton.Text = ""
+            colorButton.Parent = colorGrid
+            
+            ConnectionTracker:Track(colorButton.MouseButton1Click:Connect(function()
+                currentColor = color
+                colorPreview.BackgroundColor3 = color
+                colorPickerModal:Destroy()
+                
+                if options.Callback then
+                    local success, result = pcall(options.Callback, currentColor)
+                    if not success then
+                        warn("Nebula UI: Color picker callback error - " .. result)
+                    end
+                end
+                
+                if options.Flag then
+                    ConfigurationSystem:SetFlag(options.Flag, currentColor)
+                end
+            end))
         end
         
-        currentColor = presetColors[(currentIndex % #presetColors) + 1]
-        colorPreview.BackgroundColor3 = currentColor
+        -- Close button
+        local closeButton = Instance.new("TextButton")
+        closeButton.Size = UDim2.new(0, 100, 0, 30)
+        closeButton.Position = UDim2.new(0.5, -50, 1, -40)
+        closeButton.BackgroundColor3 = theme.ERROR
+        closeButton.Text = "Close"
+        closeButton.TextColor3 = theme.ON_PRIMARY
+        closeButton.Parent = colorPickerModal
         
-        if options.Callback then
-            local success, result = pcall(options.Callback, currentColor)
-            if not success then
-                warn("Nebula UI: Color picker callback error - " .. result)
-            end
-        end
+        ConnectionTracker:Track(closeButton.MouseButton1Click:Connect(function()
+            colorPickerModal:Destroy()
+        end))
         
-        if options.Flag then
-            ConfigurationSystem:SetFlag(options.Flag, currentColor)
-        end
+        colorPickerModal.Parent = self.GUI
     end
     
-    colorPreview.MouseButton1Click:Connect(showColorPicker)
+    ConnectionTracker:Track(colorPreview.MouseButton1Click:Connect(showColorPicker))
     
     colorPickerContainer.Parent = tab.Content
     
@@ -1983,56 +2425,72 @@ function Window:RefreshAllColors()
     -- Refresh main window colors
     if self.MainFrame then
         self.MainFrame.BackgroundColor3 = theme.SURFACE
-        self.MainFrame.Header.BackgroundColor3 = theme.PRIMARY
-        self.MainFrame.Header.Title.TextColor3 = theme.ON_PRIMARY
-        self.MainFrame.TabContainer.BackgroundColor3 = theme.SURFACE_VARIANT
-    end
-    
-    -- Refresh all UI elements in tabs
-    for _, tab in ipairs(self.Tabs) do
-        self:RefreshTabColors(tab, theme)
-    end
-end
-
-function Window:RefreshTabColors(tab, theme)
-    -- This would recursively refresh all UI elements in the tab
-    -- Implementation would iterate through all children and update colors
-end
-
--- Cleanup Methods
-function Window:Cleanup()
-    -- Disconnect all connections
-    for _, connection in ipairs(self._connections) do
-        if connection and type(connection.Disconnect) == "function" then
-            connection:Disconnect()
+        if self.MainFrame:FindFirstChild("Header") then
+            self.MainFrame.Header.BackgroundColor3 = theme.PRIMARY
+            if self.MainFrame.Header:FindFirstChild("Title") then
+                self.MainFrame.Header.Title.TextColor3 = theme.ON_PRIMARY
+            end
+        end
+        if self.MainFrame:FindFirstChild("TabContainer") then
+            self.MainFrame.TabContainer.BackgroundColor3 = theme.SURFACE_VARIANT
         end
     end
+end
+
+-- Enhanced Cleanup Methods dengan comprehensive memory cleanup
+function Window:Cleanup()
+    if Nebula_Internal.DebugMode then
+        print(string.format("Nebula UI: Cleaning up window '%s'", self.Name))
+    end
+    
+    -- Disconnect all connections
+    for i, connection in ipairs(self._connections) do
+        if connection and type(connection.Disconnect) == "function" then
+            pcall(function() connection:Disconnect() end)
+        end
+    end
+    self._connections = {}
     
     -- Cancel all tweens
-    for _, tween in ipairs(self._activeTweens) do
+    for i, tween in ipairs(self._activeTweens) do
         if tween and tween.Cancel then
-            tween:Cancel()
+            pcall(function() tween:Cancel() end)
         end
     end
+    self._activeTweens = {}
     
     -- Clean up tabs
     for _, tab in ipairs(self.Tabs) do
         if tab._connections then
             for _, conn in ipairs(tab._connections) do
                 if conn and type(conn.Disconnect) == "function" then
-                    conn:Disconnect()
+                    pcall(function() conn:Disconnect() end)
                 end
             end
         end
     end
+    self.Tabs = {}
     
     -- Destroy GUI
     if self.GUI then
         self.GUI:Destroy()
+        self.GUI = nil
+    end
+    
+    -- Remove from windows list
+    for i, window in ipairs(Nebula_Internal.Windows) do
+        if window == self then
+            table.remove(Nebula_Internal.Windows, i)
+            break
+        end
+    end
+    
+    if Nebula_Internal.DebugMode then
+        print(string.format("Nebula UI: Window '%s' cleanup completed", self.Name))
     end
 end
 
--- Main Nebula API
+-- Main Nebula API dengan enhanced error handling
 function Nebula:CreateWindow(options)
     options = options or {}
     
@@ -2060,7 +2518,11 @@ function Nebula:Notify(options)
     -- Find first window to use its notification manager
     if #Nebula_Internal.Windows > 0 then
         local window = Nebula_Internal.Windows[1]
-        window.NotificationManager:ShowNotification(options)
+        if window.NotificationManager then
+            window.NotificationManager:ShowNotification(options)
+        else
+            warn("Nebula UI: Window notification manager not available")
+        end
     else
         warn("Nebula UI: No windows created yet. Create a window first.")
     end
@@ -2082,7 +2544,39 @@ function Nebula:GetVersion()
     return Nebula_Internal.Version
 end
 
+-- Debug methods
+function Nebula:SetDebugMode(enabled)
+    Nebula_Internal.DebugMode = enabled
+    print(string.format("Nebula UI: Debug mode %s", enabled and "enabled" or "disabled"))
+end
+
+function Nebula:GetDebugInfo()
+    local info = {
+        Version = Nebula_Internal.Version,
+        ActiveWindows = #Nebula_Internal.Windows,
+        CurrentTheme = Nebula_Internal.CurrentTheme,
+        IsMobile = Nebula_Internal.IsMobile,
+        IsDesktop = Nebula_Internal.IsDesktop,
+        DebugMode = Nebula_Internal.DebugMode
+    }
+    
+    for i, window in ipairs(Nebula_Internal.Windows) do
+        info["Window_" .. i] = {
+            Name = window.Name,
+            IsOpen = window.IsOpen,
+            GUIEnabled = window.GUI and window.GUI.Enabled or false,
+            HasParent = window.GUI and window.GUI.Parent ~= nil
+        }
+    end
+    
+    return info
+end
+
 function Nebula:Cleanup()
+    if Nebula_Internal.DebugMode then
+        print("Nebula UI: Performing global cleanup")
+    end
+    
     -- Clean up all windows
     for _, window in ipairs(Nebula_Internal.Windows) do
         window:Cleanup()
@@ -2092,7 +2586,36 @@ function Nebula:Cleanup()
     ConnectionTracker:Cleanup()
     TweenManager:CancelAll()
     
+    -- Clean up configuration system
+    if ConfigurationSystem.DataStore then
+        ConfigurationSystem:SaveConfiguration()
+    end
+    
     Nebula_Internal.Windows = {}
+    
+    if Nebula_Internal.DebugMode then
+        print("Nebula UI: Global cleanup completed")
+    end
+end
+
+-- Auto cleanup on player leaving
+local function onPlayerLeaving()
+    if Nebula_Internal.DebugMode then
+        print("Nebula UI: Player leaving, performing cleanup")
+    end
+    Nebula:Cleanup()
+end
+
+-- Safe connection untuk player leaving
+local success, result = pcall(function()
+    if player then
+        ConnectionTracker:Track(player.OnTeleport:Connect(onPlayerLeaving))
+        ConnectionTracker:Track(game:BindToClose(onPlayerLeaving))
+    end
+end)
+
+if not success and Nebula_Internal.DebugMode then
+    warn("Nebula UI: Failed to bind cleanup events - " .. result)
 end
 
 -- Initialize configuration system
