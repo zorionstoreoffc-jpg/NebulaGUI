@@ -1,4 +1,4 @@
--- Nebula UI Library v4.1.1 - Complete Fixed Version
+-- Nebula UI Library v5.0.0 - Modernized and Enhanced
 local Nebula = {}
 Nebula.__index = Nebula
 
@@ -10,9 +10,11 @@ local HttpService = game:GetService("HttpService")
 local ContextActionService = game:GetService("ContextActionService")
 local CoreGui = game:GetService("CoreGui")
 local TextService = game:GetService("TextService")
+local StarterGui = game:GetService("StarterGui")
 
 local player = Players.LocalPlayer
 
+-- Device Detection System
 local function GetDeviceType()
     local isTouch = UserInputService.TouchEnabled
     local isMouse = UserInputService.MouseEnabled
@@ -44,6 +46,7 @@ end
 
 local DeviceInfo = GetDeviceType()
 
+-- Icon Library
 local FEATHER_ICONS = {
     home = "rbxassetid://7733774602",
     settings = "rbxassetid://7734068321",
@@ -83,13 +86,17 @@ local FEATHER_ICONS = {
     filter = "rbxassetid://7733966916",
     folder = "rbxassetid://7733964237",
     file = "rbxassetid://7733960981",
-    file_text = "rbxassetid://7733960981"
+    file_text = "rbxassetid://7733960981",
+    loading = "rbxassetid://7734053495",
+    spinner = "rbxassetid://7734021456"
 }
 
+-- Modern Theme System
 local MODERN_THEMES = {
     Default = {
         PRIMARY = Color3.fromRGB(0, 120, 215),
         PRIMARY_LIGHT = Color3.fromRGB(96, 171, 232),
+        PRIMARY_CONTAINER = Color3.fromRGB(232, 240, 254),
         SURFACE = Color3.fromRGB(32, 32, 32),
         SURFACE_VARIANT = Color3.fromRGB(42, 42, 42),
         BACKGROUND = Color3.fromRGB(25, 25, 25),
@@ -97,14 +104,18 @@ local MODERN_THEMES = {
         ON_SURFACE = Color3.fromRGB(255, 255, 255),
         ON_SURFACE_VARIANT = Color3.fromRGB(180, 180, 180),
         OUTLINE = Color3.fromRGB(65, 65, 65),
+        OUTLINE_VARIANT = Color3.fromRGB(55, 55, 55),
         SUCCESS = Color3.fromRGB(52, 199, 89),
         WARNING = Color3.fromRGB(255, 149, 0),
         ERROR = Color3.fromRGB(255, 59, 48),
-        SHADOW = Color3.fromRGB(0, 0, 0)
+        SHADOW = Color3.fromRGB(0, 0, 0),
+        GLASS = Color3.fromRGB(255, 255, 255),
+        ACCENT = Color3.fromRGB(0, 184, 148)
     },
     Light = {
         PRIMARY = Color3.fromRGB(0, 120, 215),
         PRIMARY_LIGHT = Color3.fromRGB(96, 171, 232),
+        PRIMARY_CONTAINER = Color3.fromRGB(232, 240, 254),
         SURFACE = Color3.fromRGB(255, 255, 255),
         SURFACE_VARIANT = Color3.fromRGB(249, 249, 249),
         BACKGROUND = Color3.fromRGB(243, 243, 243),
@@ -112,14 +123,18 @@ local MODERN_THEMES = {
         ON_SURFACE = Color3.fromRGB(32, 32, 32),
         ON_SURFACE_VARIANT = Color3.fromRGB(117, 117, 117),
         OUTLINE = Color3.fromRGB(225, 225, 225),
+        OUTLINE_VARIANT = Color3.fromRGB(200, 200, 200),
         SUCCESS = Color3.fromRGB(16, 124, 16),
         WARNING = Color3.fromRGB(157, 93, 0),
         ERROR = Color3.fromRGB(197, 0, 0),
-        SHADOW = Color3.fromRGB(0, 0, 0)
+        SHADOW = Color3.fromRGB(0, 0, 0),
+        GLASS = Color3.fromRGB(255, 255, 255),
+        ACCENT = Color3.fromRGB(0, 184, 148)
     },
     Dark = {
         PRIMARY = Color3.fromRGB(96, 171, 232),
         PRIMARY_LIGHT = Color3.fromRGB(120, 185, 240),
+        PRIMARY_CONTAINER = Color3.fromRGB(32, 50, 70),
         SURFACE = Color3.fromRGB(32, 32, 32),
         SURFACE_VARIANT = Color3.fromRGB(42, 42, 42),
         BACKGROUND = Color3.fromRGB(25, 25, 25),
@@ -127,14 +142,18 @@ local MODERN_THEMES = {
         ON_SURFACE = Color3.fromRGB(255, 255, 255),
         ON_SURFACE_VARIANT = Color3.fromRGB(180, 180, 180),
         OUTLINE = Color3.fromRGB(65, 65, 65),
+        OUTLINE_VARIANT = Color3.fromRGB(55, 55, 55),
         SUCCESS = Color3.fromRGB(52, 199, 89),
         WARNING = Color3.fromRGB(255, 149, 0),
         ERROR = Color3.fromRGB(255, 59, 48),
-        SHADOW = Color3.fromRGB(0, 0, 0)
+        SHADOW = Color3.fromRGB(0, 0, 0),
+        GLASS = Color3.fromRGB(255, 255, 255),
+        ACCENT = Color3.fromRGB(0, 184, 148)
     },
     Modern = {
         PRIMARY = Color3.fromRGB(0, 184, 148),
         PRIMARY_LIGHT = Color3.fromRGB(85, 239, 203),
+        PRIMARY_CONTAINER = Color3.fromRGB(224, 255, 244),
         SURFACE = Color3.fromRGB(248, 250, 252),
         SURFACE_VARIANT = Color3.fromRGB(241, 245, 249),
         BACKGROUND = Color3.fromRGB(226, 232, 240),
@@ -142,13 +161,106 @@ local MODERN_THEMES = {
         ON_SURFACE = Color3.fromRGB(30, 41, 59),
         ON_SURFACE_VARIANT = Color3.fromRGB(100, 116, 139),
         OUTLINE = Color3.fromRGB(203, 213, 225),
+        OUTLINE_VARIANT = Color3.fromRGB(148, 163, 184),
         SUCCESS = Color3.fromRGB(34, 197, 94),
         WARNING = Color3.fromRGB(245, 158, 11),
         ERROR = Color3.fromRGB(239, 68, 68),
-        SHADOW = Color3.fromRGB(51, 65, 85)
+        SHADOW = Color3.fromRGB(51, 65, 85),
+        GLASS = Color3.fromRGB(255, 255, 255),
+        ACCENT = Color3.fromRGB(139, 92, 246)
+    },
+    Neon = {
+        PRIMARY = Color3.fromRGB(139, 92, 246),
+        PRIMARY_LIGHT = Color3.fromRGB(196, 181, 253),
+        PRIMARY_CONTAINER = Color3.fromRGB(237, 233, 254),
+        SURFACE = Color3.fromRGB(17, 24, 39),
+        SURFACE_VARIANT = Color3.fromRGB(31, 41, 55),
+        BACKGROUND = Color3.fromRGB(3, 7, 18),
+        ON_PRIMARY = Color3.fromRGB(255, 255, 255),
+        ON_SURFACE = Color3.fromRGB(243, 244, 246),
+        ON_SURFACE_VARIANT = Color3.fromRGB(156, 163, 175),
+        OUTLINE = Color3.fromRGB(75, 85, 99),
+        OUTLINE_VARIANT = Color3.fromRGB(55, 65, 81),
+        SUCCESS = Color3.fromRGB(52, 211, 153),
+        WARNING = Color3.fromRGB(251, 191, 36),
+        ERROR = Color3.fromRGB(248, 113, 113),
+        SHADOW = Color3.fromRGB(0, 0, 0),
+        GLASS = Color3.fromRGB(255, 255, 255),
+        ACCENT = Color3.fromRGB(236, 72, 153)
     }
 }
 
+-- Typography System
+local TYPOGRAPHY = {
+    Heading1 = {
+        Size = 32,
+        Weight = Enum.Font.SourceSansBold,
+        LineHeight = 1.2
+    },
+    Heading2 = {
+        Size = 24,
+        Weight = Enum.Font.SourceSansBold,
+        LineHeight = 1.2
+    },
+    Heading3 = {
+        Size = 20,
+        Weight = Enum.Font.SourceSansSemibold,
+        LineHeight = 1.3
+    },
+    Heading4 = {
+        Size = 18,
+        Weight = Enum.Font.SourceSansSemibold,
+        LineHeight = 1.3
+    },
+    Heading5 = {
+        Size = 16,
+        Weight = Enum.Font.SourceSansSemibold,
+        LineHeight = 1.4
+    },
+    Heading6 = {
+        Size = 14,
+        Weight = Enum.Font.SourceSansSemibold,
+        LineHeight = 1.4
+    },
+    BodyLarge = {
+        Size = 16,
+        Weight = Enum.Font.SourceSans,
+        LineHeight = 1.5
+    },
+    BodyMedium = {
+        Size = 14,
+        Weight = Enum.Font.SourceSans,
+        LineHeight = 1.5
+    },
+    BodySmall = {
+        Size = 12,
+        Weight = Enum.Font.SourceSans,
+        LineHeight = 1.4
+    },
+    Label = {
+        Size = 14,
+        Weight = Enum.Font.SourceSansSemibold,
+        LineHeight = 1.3
+    },
+    Caption = {
+        Size = 12,
+        Weight = Enum.Font.SourceSans,
+        LineHeight = 1.3
+    }
+}
+
+-- Spacing System (4px base unit)
+local SPACING = {
+    XS = 4,
+    S = 8,
+    M = 12,
+    L = 16,
+    XL = 24,
+    XXL = 32,
+    XXXL = 48
+}
+
+-- Mobile Settings
 local MOBILE_SETTINGS = {
     SIDEBAR_WIDTH = UDim.new(0.7, 0),
     SIDEBAR_MIN_WIDTH = 280,
@@ -156,9 +268,36 @@ local MOBILE_SETTINGS = {
     ELEMENT_HEIGHT = DeviceInfo.IsTablet and 48 or 52,
     CORNER_RADIUS = DeviceInfo.IsTablet and 14 or 12,
     ANIMATION_DURATION = 0.3,
-    TOUCH_TARGET = DeviceInfo.IsTablet and 48 or 44
+    TOUCH_TARGET = DeviceInfo.IsTablet and 48 or 44,
+    FONT_SIZE_SMALL = 12,
+    FONT_SIZE_MEDIUM = 14,
+    FONT_SIZE_LARGE = 16
 }
 
+-- Animation Easing Functions
+local EASING = {
+    Smooth = Enum.EasingStyle.Cubic,
+    SmoothIn = Enum.EasingStyle.Cubic,
+    SmoothOut = Enum.EasingStyle.Cubic,
+    SmoothInOut = Enum.EasingStyle.Cubic,
+    Spring = Enum.EasingStyle.Back,
+    Bounce = Enum.EasingStyle.Bounce,
+    Elastic = Enum.EasingStyle.Elastic,
+    Linear = Enum.EasingStyle.Linear
+}
+
+-- Animation Durations
+local DURATIONS = {
+    Fast = 0.15,
+    Normal = 0.2,
+    Slow = 0.3,
+    Slower = 0.4,
+    PageTransition = 0.3,
+    ModalTransition = 0.25,
+    Focus = 0.1
+}
+
+-- Internal State
 local Nebula_Internal = {
     Windows = {},
     Toasts = {},
@@ -166,7 +305,7 @@ local Nebula_Internal = {
     DeviceInfo = DeviceInfo,
     IsMobile = DeviceInfo.IsMobile,
     IsDesktop = DeviceInfo.IsDesktop,
-    Version = "4.1.1",
+    Version = "5.0.0",
     ConfigurationSaving = {
         Enabled = false,
         FolderName = "NebulaUI",
@@ -175,9 +314,13 @@ local Nebula_Internal = {
     ToggleUIKeybind = "K",
     DebugMode = false,
     ActiveConnections = {},
-    ActiveTweens = {}
+    ActiveTweens = {},
+    EventListeners = {},
+    LoadingStates = {},
+    HoverEffects = {}
 }
 
+-- Configuration System
 local ConfigurationSystem = {
     DataStore = nil,
     Configurations = {},
@@ -252,6 +395,7 @@ function ConfigurationSystem:GetFlag(flag, defaultValue)
     return ConfigurationSystem.Configurations[flag] or defaultValue
 end
 
+-- Connection Tracker
 local ConnectionTracker = {
     ActiveConnections = {}
 }
@@ -270,6 +414,7 @@ function ConnectionTracker:Cleanup()
     self.ActiveConnections = {}
 end
 
+-- Tween Manager
 local TweenManager = {
     ActiveTweens = {}
 }
@@ -288,75 +433,390 @@ function TweenManager:CancelAll()
     self.ActiveTweens = {}
 end
 
-local RippleEffect = {}
-RippleEffect.__index = RippleEffect
+-- Modern Hover Effects System
+local HoverEffect = {}
+HoverEffect.__index = HoverEffect
 
-RippleEffect.RipplePool = {}
-RippleEffect.MaxPoolSize = 10
-
-function RippleEffect:GetRippleFromPool()
-    if #RippleEffect.RipplePool > 0 then
-        return table.remove(RippleEffect.RipplePool)
-    end
-    return nil
-end
-
-function RippleEffect:ReturnRippleToPool(ripple)
-    if ripple then
-        ripple.Size = UDim2.new(0, 0, 0, 0)
-        ripple.BackgroundTransparency = 0.8
-        ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        ripple.Visible = false
-        ripple.Parent = nil
-        
-        if #RippleEffect.RipplePool < RippleEffect.MaxPoolSize then
-            table.insert(RippleEffect.RipplePool, ripple)
-        else
-            ripple:Destroy()
-        end
-    end
-end
-
-function RippleEffect:CreateRipple(button, position)
-    local ripple = self:GetRippleFromPool()
+function HoverEffect:Create(element, options)
+    options = options or {}
     
-    if not ripple then
-        ripple = Instance.new("Frame")
-        ripple.Name = "Ripple"
+    local theme = MODERN_THEMES[Nebula_Internal.CurrentTheme]
+    local defaultColor = element.BackgroundColor3
+    local hoverColor = options.HoverColor or theme.PRIMARY_LIGHT
+    local scaleAmount = options.ScaleAmount or 1.02
+    local shadowAmount = options.ShadowAmount or 0.15
+    local duration = options.Duration or DURATIONS.Fast
+    
+    -- Store original properties
+    local originalSize = element.Size
+    local originalPosition = element.Position
+    local originalColor = element.BackgroundColor3
+    local originalTransparency = element.BackgroundTransparency
+    
+    -- Create shadow if not exists
+    local shadow = element:FindFirstChild("Shadow")
+    if not shadow then
+        shadow = Instance.new("ImageLabel")
+        shadow.Name = "Shadow"
+        shadow.Size = UDim2.new(1, 10, 1, 10)
+        shadow.Position = UDim2.new(0, -5, 0, -5)
+        shadow.BackgroundTransparency = 1
+        shadow.Image = "rbxassetid://5554236773"
+        shadow.ImageColor3 = theme.SHADOW
+        shadow.ImageTransparency = 0.7
+        shadow.ScaleType = Enum.ScaleType.Slice
+        shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+        shadow.ZIndex = element.ZIndex - 1
+        shadow.Parent = element
+    end
+    
+    -- Create gradient overlay if not exists
+    local gradientOverlay = element:FindFirstChild("GradientOverlay")
+    if not gradientOverlay then
+        gradientOverlay = Instance.new("Frame")
+        gradientOverlay.Name = "GradientOverlay"
+        gradientOverlay.Size = UDim2.new(1, 0, 1, 0)
+        gradientOverlay.Position = UDim2.new(0, 0, 0, 0)
+        gradientOverlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        gradientOverlay.BackgroundTransparency = 0.9
+        gradientOverlay.BorderSizePixel = 0
+        gradientOverlay.ZIndex = element.ZIndex + 1
         
         local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(1, 0)
-        corner.Parent = ripple
+        corner.CornerRadius = element:FindFirstChildOfClass("UICorner") and 
+                             element:FindFirstChildOfClass("UICorner").CornerRadius or UDim.new(0, 8)
+        corner.Parent = gradientOverlay
+        
+        gradientOverlay.Parent = element
     end
     
-    ripple.Size = UDim2.new(0, 0, 0, 0)
-    ripple.Position = UDim2.new(0, position.X - button.AbsolutePosition.X, 0, position.Y - button.AbsolutePosition.Y)
-    ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    ripple.BackgroundTransparency = 0.8
-    ripple.BorderSizePixel = 0
-    ripple.ZIndex = button.ZIndex + 1
-    ripple.Visible = true
+    -- Track hover state
+    local isHovering = false
     
-    ripple.Parent = button
+    -- Hover enter function
+    local function onHoverEnter()
+        if isHovering then return end
+        isHovering = true
+        
+        local tweenInfo = TweenInfo.new(duration, EASING.SmoothOut)
+        
+        -- Scale animation
+        local scaleTween = TweenService:Create(element, tweenInfo, {
+            Size = UDim2.new(
+                originalSize.X.Scale, 
+                originalSize.X.Offset * scaleAmount, 
+                originalSize.Y.Scale, 
+                originalSize.Y.Offset * scaleAmount
+            )
+        })
+        TweenManager:Track(scaleTween)
+        scaleTween:Play()
+        
+        -- Color animation
+        local colorTween = TweenService:Create(element, tweenInfo, {
+            BackgroundColor3 = hoverColor
+        })
+        TweenManager:Track(colorTween)
+        colorTween:Play()
+        
+        -- Shadow animation
+        local shadowTween = TweenService:Create(shadow, tweenInfo, {
+            ImageTransparency = 0.5 - shadowAmount
+        })
+        TweenManager:Track(shadowTween)
+        shadowTween:Play()
+        
+        -- Gradient overlay animation
+        local gradientTween = TweenService:Create(gradientOverlay, tweenInfo, {
+            BackgroundTransparency = 0.8
+        })
+        TweenManager:Track(gradientTween)
+        gradientTween:Play()
+    end
     
-    local maxSize = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 2
-    local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    -- Hover leave function
+    local function onHoverLeave()
+        if not isHovering then return end
+        isHovering = false
+        
+        local tweenInfo = TweenInfo.new(duration, EASING.SmoothOut)
+        
+        -- Scale animation
+        local scaleTween = TweenService:Create(element, tweenInfo, {
+            Size = originalSize
+        })
+        TweenManager:Track(scaleTween)
+        scaleTween:Play()
+        
+        -- Color animation
+        local colorTween = TweenService:Create(element, tweenInfo, {
+            BackgroundColor3 = originalColor
+        })
+        TweenManager:Track(colorTween)
+        colorTween:Play()
+        
+        -- Shadow animation
+        local shadowTween = TweenService:Create(shadow, tweenInfo, {
+            ImageTransparency = 0.7
+        })
+        TweenManager:Track(shadowTween)
+        shadowTween:Play()
+        
+        -- Gradient overlay animation
+        local gradientTween = TweenService:Create(gradientOverlay, tweenInfo, {
+            BackgroundTransparency = 0.9
+        })
+        TweenManager:Track(gradientTween)
+        gradientTween:Play()
+    end
     
-    local sizeTween = TweenService:Create(ripple, tweenInfo, {
-        Size = UDim2.new(0, maxSize, 0, maxSize),
-        Position = UDim2.new(0, position.X - button.AbsolutePosition.X - maxSize/2, 0, position.Y - button.AbsolutePosition.Y - maxSize/2),
-        BackgroundTransparency = 1
-    })
+    -- Connect events
+    local mouseEnter = ConnectionTracker:Track(element.MouseEnter:Connect(onHoverEnter))
+    local mouseLeave = ConnectionTracker:Track(element.MouseLeave:Connect(onHoverLeave))
     
-    TweenManager:Track(sizeTween)
-    sizeTween:Play()
+    -- Touch events for mobile
+    if DeviceInfo.IsTouch then
+        local touchBegan = ConnectionTracker:Track(element.TouchTap:Connect(function()
+            onHoverEnter()
+            delay(duration * 2, function()
+                onHoverLeave()
+            end)
+        end))
+    end
     
-    sizeTween.Completed:Connect(function()
-        ripple.Visible = false
-        self:ReturnRippleToPool(ripple)
-    end)
+    -- Return cleanup function
+    return function()
+        if mouseEnter then mouseEnter:Disconnect() end
+        if mouseLeave then mouseLeave:Disconnect() end
+        if shadow then shadow:Destroy() end
+        if gradientOverlay then gradientOverlay:Destroy() end
+    end
 end
 
+-- Loading UI System
+local LoadingUI = {}
+LoadingUI.__index = LoadingUI
+
+function LoadingUI:CreateSpinner(parent, options)
+    options = options or {}
+    local size = options.Size or UDim2.new(0, 24, 0, 24)
+    local color = options.Color or MODERN_THEMES[Nebula_Internal.CurrentTheme].PRIMARY
+    local duration = options.Duration or 2
+    
+    local spinner = Instance.new("ImageLabel")
+    spinner.Name = "Spinner"
+    spinner.Size = size
+    spinner.BackgroundTransparency = 1
+    spinner.Image = FEATHER_ICONS.spinner
+    spinner.ImageColor3 = color
+    spinner.Parent = parent
+    
+    local rotationTween = TweenService:Create(spinner, TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Infinite, -1), {
+        Rotation = 360
+    })
+    TweenManager:Track(rotationTween)
+    rotationTween:Play()
+    
+    return spinner
+end
+
+function LoadingUI:CreateProgressBar(parent, options)
+    options = options or {}
+    local size = options.Size or UDim2.new(1, 0, 0, 4)
+    local position = options.Position or UDim2.new(0, 0, 0, 0)
+    local color = options.Color or MODERN_THEMES[Nebula_Internal.CurrentTheme].PRIMARY
+    local indeterminate = options.Indeterminate or false
+    
+    local container = Instance.new("Frame")
+    container.Name = "ProgressBar"
+    container.Size = size
+    container.Position = position
+    container.BackgroundColor3 = MODERN_THEMES[Nebula_Internal.CurrentTheme].OUTLINE
+    container.BorderSizePixel = 0
+    container.Parent = parent
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = container
+    
+    local fill = Instance.new("Frame")
+    fill.Name = "Fill"
+    fill.Size = UDim2.new(0, 0, 1, 0)
+    fill.BackgroundColor3 = color
+    fill.BorderSizePixel = 0
+    fill.Parent = container
+    
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(1, 0)
+    fillCorner.Parent = fill
+    
+    if indeterminate then
+        local indeterminateTween = TweenService:Create(fill, TweenInfo.new(1.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {
+            Size = UDim2.new(0.7, 0, 1, 0),
+            Position = UDim2.new(0.3, 0, 0, 0)
+        })
+        TweenManager:Track(indeterminateTween)
+        indeterminateTween:Play()
+    end
+    
+    return {
+        Container = container,
+        Fill = fill,
+        SetProgress = function(self, value)
+            value = math.clamp(value, 0, 1)
+            fill:TweenSize(
+                UDim2.new(value, 0, 1, 0),
+                Enum.EasingDirection.Out,
+                Enum.EasingStyle.Cubic,
+                0.3,
+                true
+            )
+        end
+    }
+end
+
+function LoadingUI:CreateSkeleton(parent, options)
+    options = options or {}
+    local width = options.Width or UDim.new(1, 0)
+    local height = options.Height or UDim.new(0, 20)
+    local position = options.Position or UDim2.new(0, 0, 0, 0)
+    local cornerRadius = options.CornerRadius or UDim.new(0, 4)
+    
+    local skeleton = Instance.new("Frame")
+    skeleton.Name = "Skeleton"
+    skeleton.Size = UDim2.new(width, height)
+    skeleton.Position = position
+    skeleton.BackgroundColor3 = MODERN_THEMES[Nebula_Internal.CurrentTheme].OUTLINE
+    skeleton.BorderSizePixel = 0
+    skeleton.Parent = parent
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = cornerRadius
+    corner.Parent = skeleton
+    
+    local shimmer = Instance.new("Frame")
+    shimmer.Name = "Shimmer"
+    shimmer.Size = UDim2.new(0.5, 0, 1, 0)
+    shimmer.Position = UDim2.new(-0.5, 0, 0, 0)
+    shimmer.BackgroundTransparency = 0.2
+    shimmer.BorderSizePixel = 0
+    shimmer.Parent = skeleton
+    
+    local shimmerCorner = Instance.new("UICorner")
+    shimmerCorner.CornerRadius = cornerRadius
+    shimmerCorner.Parent = shimmer
+    
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+    }
+    gradient.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(0.5, 0),
+        NumberSequenceKeypoint.new(1, 1)
+    }
+    gradient.Rotation = 90
+    gradient.Parent = shimmer
+    
+    local shimmerTween = TweenService:Create(shimmer, TweenInfo.new(1.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {
+        Position = UDim2.new(1, 0, 0, 0)
+    })
+    TweenManager:Track(shimmerTween)
+    shimmerTween:Play()
+    
+    return skeleton
+end
+
+function LoadingUI:CreateLoadingOverlay(parent, options)
+    options = options or {}
+    local message = options.Message or "Loading..."
+    local showSpinner = options.ShowSpinner ~= false
+    local showProgress = options.ShowProgress or false
+    
+    local overlay = Instance.new("Frame")
+    overlay.Name = "LoadingOverlay"
+    overlay.Size = UDim2.new(1, 0, 1, 0)
+    overlay.Position = UDim2.new(0, 0, 0, 0)
+    overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    overlay.BackgroundTransparency = 0.3
+    overlay.BorderSizePixel = 0
+    overlay.ZIndex = 1000
+    overlay.Parent = parent
+    
+    local container = Instance.new("Frame")
+    container.Name = "Container"
+    container.Size = UDim2.new(0, 200, 0, 100)
+    container.Position = UDim2.new(0.5, -100, 0.5, -50)
+    container.BackgroundColor3 = MODERN_THEMES[Nebula_Internal.CurrentTheme].SURFACE
+    container.BorderSizePixel = 0
+    container.ZIndex = overlay.ZIndex + 1
+    container.Parent = overlay
+    
+    local containerCorner = Instance.new("UICorner")
+    containerCorner.CornerRadius = UDim.new(0, 8)
+    containerCorner.Parent = container
+    
+    local containerShadow = Instance.new("ImageLabel")
+    containerShadow.Name = "Shadow"
+    containerShadow.Size = UDim2.new(1, 20, 1, 20)
+    containerShadow.Position = UDim2.new(0, -10, 0, -10)
+    containerShadow.BackgroundTransparency = 1
+    containerShadow.Image = "rbxassetid://5554236773"
+    containerShadow.ImageColor3 = MODERN_THEMES[Nebula_Internal.CurrentTheme].SHADOW
+    containerShadow.ImageTransparency = 0.5
+    containerShadow.ScaleType = Enum.ScaleType.Slice
+    containerShadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    containerShadow.ZIndex = container.ZIndex - 1
+    containerShadow.Parent = container
+    
+    if showSpinner then
+        local spinner = LoadingUI:CreateSpinner(container, {
+            Size = UDim2.new(0, 32, 0, 32),
+            Position = UDim2.new(0.5, -16, 0, 20)
+        })
+    end
+    
+    if showProgress then
+        local progressBar = LoadingUI:CreateProgressBar(container, {
+            Size = UDim2.new(0.8, 0, 0, 4),
+            Position = UDim2.new(0.1, 0, 0, 60)
+        })
+    end
+    
+    local messageLabel = Instance.new("TextLabel")
+    messageLabel.Name = "Message"
+    messageLabel.Size = UDim2.new(0.8, 0, 0, 20)
+    messageLabel.Position = UDim2.new(0.1, 0, 0, 70)
+    messageLabel.BackgroundTransparency = 1
+    messageLabel.Text = message
+    messageLabel.TextColor3 = MODERN_THEMES[Nebula_Internal.CurrentTheme].ON_SURFACE
+    messageLabel.TextSize = 14
+    messageLabel.Font = Enum.Font.SourceSans
+    messageLabel.TextXAlignment = Enum.TextXAlignment.Center
+    messageLabel.ZIndex = container.ZIndex + 1
+    messageLabel.Parent = container
+    
+    return {
+        Overlay = overlay,
+        Container = container,
+        MessageLabel = messageLabel,
+        SetMessage = function(self, newMessage)
+            messageLabel.Text = newMessage
+        end,
+        SetProgress = function(self, value)
+            if progressBar then
+                progressBar:SetProgress(value)
+            end
+        end,
+        Destroy = function(self)
+            overlay:Destroy()
+        end
+    }
+end
+
+-- Window Class
 local Window = {}
 Window.__index = Window
 
@@ -378,6 +838,7 @@ function Window.new(nebula, options)
     self.DragStartPosition = nil
     self.StartSize = nil
     self.IsMinimized = false
+    self.LoadingStates = {}
     
     self:BuildGUI()
     
@@ -405,8 +866,8 @@ function Window:BuildGUI()
         mainFrame.Size = UDim2.new(0.9, 0, 0.8, 0)
         mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
     else
-        mainFrame.Size = UDim2.new(0, 500, 0, 400)
-        mainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+        mainFrame.Size = UDim2.new(0, 600, 0, 450)
+        mainFrame.Position = UDim2.new(0.5, -300, 0.5, -225)
     end
     mainFrame.BackgroundColor3 = theme.SURFACE
     mainFrame.BorderSizePixel = 0
@@ -414,38 +875,63 @@ function Window:BuildGUI()
     mainFrame.Visible = true
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
+    corner.CornerRadius = UDim.new(0, 12)
     corner.Parent = mainFrame
     
+    -- Modern shadow with blur effect
     local shadow = Instance.new("ImageLabel")
     shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 20, 1, 20)
-    shadow.Position = UDim2.new(0, -10, 0, -10)
+    shadow.Size = UDim2.new(1, 30, 1, 30)
+    shadow.Position = UDim2.new(0, -15, 0, -15)
     shadow.BackgroundTransparency = 1
     shadow.Image = "rbxassetid://5554236773"
     shadow.ImageColor3 = theme.SHADOW
-    shadow.ImageTransparency = 0.8
+    shadow.ImageTransparency = 0.6
     shadow.ScaleType = Enum.ScaleType.Slice
     shadow.SliceCenter = Rect.new(10, 10, 118, 118)
     shadow.ZIndex = mainFrame.ZIndex - 1
     shadow.Parent = mainFrame
     
+    -- Glassmorphism effect
+    local glassEffect = Instance.new("Frame")
+    glassEffect.Name = "GlassEffect"
+    glassEffect.Size = UDim2.new(1, 0, 1, 0)
+    glassEffect.Position = UDim2.new(0, 0, 0, 0)
+    glassEffect.BackgroundColor3 = theme.GLASS
+    glassEffect.BackgroundTransparency = 0.9
+    glassEffect.BorderSizePixel = 0
+    glassEffect.ZIndex = mainFrame.ZIndex + 1
+    
+    local glassCorner = Instance.new("UICorner")
+    glassCorner.CornerRadius = UDim.new(0, 12)
+    glassCorner.Parent = glassEffect
+    
+    glassEffect.Parent = mainFrame
+    
+    -- Header with gradient
     local header = Instance.new("Frame")
     header.Name = "Header"
-    header.Size = UDim2.new(1, 0, 0, 40)
+    header.Size = UDim2.new(1, 0, 0, 50)
     header.BackgroundColor3 = theme.PRIMARY
     header.BorderSizePixel = 0
-    header.ZIndex = mainFrame.ZIndex + 1
+    header.ZIndex = mainFrame.ZIndex + 2
+    
+    local headerGradient = Instance.new("UIGradient")
+    headerGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, theme.PRIMARY),
+        ColorSequenceKeypoint.new(1, theme.PRIMARY_LIGHT)
+    }
+    headerGradient.Parent = header
     
     local headerCorner = Instance.new("UICorner")
-    headerCorner.CornerRadius = UDim.new(0, 8, 0, 0)
+    headerCorner.CornerRadius = UDim.new(0, 12, 0, 0)
     headerCorner.Parent = header
     
     if self.Icon then
         local icon = Instance.new("ImageLabel")
         icon.Name = "Icon"
         icon.Size = UDim2.new(0, 24, 0, 24)
-        icon.Position = UDim2.new(0, 8, 0.5, -12)
+        icon.Position = UDim2.new(0, 12, 0.5, -12)
         icon.BackgroundTransparency = 1
         icon.Image = FEATHER_ICONS[self.Icon] or self.Icon
         icon.ImageColor3 = theme.ON_PRIMARY
@@ -455,8 +941,8 @@ function Window:BuildGUI()
     
     local title = Instance.new("TextLabel")
     title.Name = "Title"
-    title.Size = self.Icon and UDim2.new(1, -120, 1, 0) or UDim2.new(1, -80, 1, 0)
-    title.Position = self.Icon and UDim2.new(0, 40, 0, 0) or UDim2.new(0, 12, 0, 0)
+    title.Size = self.Icon and UDim2.new(1, -140, 1, 0) or UDim2.new(1, -100, 1, 0)
+    title.Position = self.Icon and UDim2.new(0, 44, 0, 0) or UDim2.new(0, 16, 0, 0)
     title.BackgroundTransparency = 1
     title.Text = self.Name
     title.TextColor3 = theme.ON_PRIMARY
@@ -468,23 +954,35 @@ function Window:BuildGUI()
     
     local closeButton = Instance.new("ImageButton")
     closeButton.Name = "CloseButton"
-    closeButton.Size = UDim2.new(0, 30, 0, 30)
-    closeButton.Position = UDim2.new(1, -35, 0.5, -15)
+    closeButton.Size = UDim2.new(0, 32, 0, 32)
+    closeButton.Position = UDim2.new(1, -38, 0.5, -16)
     closeButton.BackgroundTransparency = 1
     closeButton.Image = FEATHER_ICONS.x
     closeButton.ImageColor3 = theme.ON_PRIMARY
     closeButton.ZIndex = header.ZIndex + 1
     closeButton.Parent = header
     
+    -- Apply hover effect to close button
+    HoverEffect:Create(closeButton, {
+        HoverColor = theme.ERROR,
+        ScaleAmount = 1.1
+    })
+    
     local minimizeButton = Instance.new("ImageButton")
     minimizeButton.Name = "MinimizeButton"
-    minimizeButton.Size = UDim2.new(0, 30, 0, 30)
-    minimizeButton.Position = UDim2.new(1, -70, 0.5, -15)
+    minimizeButton.Size = UDim2.new(0, 32, 0, 32)
+    minimizeButton.Position = UDim2.new(1, -76, 0.5, -16)
     minimizeButton.BackgroundTransparency = 1
     minimizeButton.Image = FEATHER_ICONS.chevron_down
     minimizeButton.ImageColor3 = theme.ON_PRIMARY
     minimizeButton.ZIndex = header.ZIndex + 1
     minimizeButton.Parent = header
+    
+    -- Apply hover effect to minimize button
+    HoverEffect:Create(minimizeButton, {
+        HoverColor = theme.PRIMARY_LIGHT,
+        ScaleAmount = 1.1
+    })
     
     self:SetupDrag(header, mainFrame)
     self:SetupResize(mainFrame)
@@ -499,13 +997,18 @@ function Window:BuildGUI()
     
     header.Parent = mainFrame
     
+    -- Tab container with modern design
     local tabContainer = Instance.new("Frame")
     tabContainer.Name = "TabContainer"
-    tabContainer.Size = UDim2.new(0, 120, 1, -40)
-    tabContainer.Position = UDim2.new(0, 0, 0, 40)
+    tabContainer.Size = UDim2.new(0, 150, 1, -50)
+    tabContainer.Position = UDim2.new(0, 0, 0, 50)
     tabContainer.BackgroundColor3 = theme.SURFACE_VARIANT
     tabContainer.BorderSizePixel = 0
     tabContainer.ZIndex = mainFrame.ZIndex + 1
+    
+    local tabCorner = Instance.new("UICorner")
+    tabCorner.CornerRadius = UDim.new(0, 0, 0, 12)
+    tabCorner.Parent = tabContainer
     
     local tabList = Instance.new("ScrollingFrame")
     tabList.Name = "TabList"
@@ -519,7 +1022,7 @@ function Window:BuildGUI()
     tabList.ZIndex = tabContainer.ZIndex + 1
     
     local tabLayout = Instance.new("UIListLayout")
-    tabLayout.Padding = UDim.new(0, 4)
+    tabLayout.Padding = UDim.new(0, SPACING.S)
     tabLayout.Parent = tabList
     
     ConnectionTracker:Track(tabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
@@ -530,10 +1033,11 @@ function Window:BuildGUI()
     
     tabList.Parent = tabContainer
     
+    -- Content container with modern design
     local contentContainer = Instance.new("Frame")
     contentContainer.Name = "ContentContainer"
-    contentContainer.Size = UDim2.new(1, -120, 1, -40)
-    contentContainer.Position = UDim2.new(0, 120, 0, 40)
+    contentContainer.Size = UDim2.new(1, -150, 1, -50)
+    contentContainer.Position = UDim2.new(0, 150, 0, 50)
     contentContainer.BackgroundTransparency = 1
     contentContainer.ClipsDescendants = true
     contentContainer.ZIndex = mainFrame.ZIndex + 1
@@ -608,8 +1112,8 @@ function Window:SetupResize(targetElement)
         
         local delta = input.Position - resizeStart
         local newSize = UDim2.new(
-            startSize.X.Scale, math.max(400, startSize.X.Offset + delta.X),
-            startSize.Y.Scale, math.max(300, startSize.Y.Offset + delta.Y)
+            startSize.X.Scale, math.max(500, startSize.X.Offset + delta.X),
+            startSize.Y.Scale, math.max(400, startSize.Y.Offset + delta.Y)
         )
         targetElement.Size = newSize
     end
@@ -683,21 +1187,21 @@ function Window:Toggle()
         if self.IsOpen then
             self.GUI.Enabled = true
             self.MainFrame.Visible = true
-            self.MainFrame.Size = UDim2.new(0, 500, 0, 0)
-            self.MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+            self.MainFrame.Size = UDim2.new(0, 600, 0, 0)
+            self.MainFrame.Position = UDim2.new(0.5, -300, 0.5, -225)
             
-            local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            local tweenInfo = TweenInfo.new(DURATIONS.PageTransition, EASING.Spring, Enum.EasingDirection.Out)
             local tween = TweenService:Create(self.MainFrame, tweenInfo, {
-                Size = UDim2.new(0, 500, 0, 400)
+                Size = UDim2.new(0, 600, 0, 450)
             })
             
             TweenManager:Track(tween)
             table.insert(self._activeTweens, tween)
             tween:Play()
         else
-            local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.In)
+            local tweenInfo = TweenInfo.new(DURATIONS.Normal, EASING.SmoothIn, Enum.EasingDirection.In)
             local tween = TweenService:Create(self.MainFrame, tweenInfo, {
-                Size = UDim2.new(0, 500, 0, 0)
+                Size = UDim2.new(0, 600, 0, 0)
             })
             
             TweenManager:Track(tween)
@@ -721,9 +1225,9 @@ function Window:Toggle()
         if self.GUI then
             self.GUI.Enabled = self.IsOpen
             if self.IsOpen and self.MainFrame then
-                self.MainFrame.Size = UDim2.new(0, 500, 0, 400)
+                self.MainFrame.Size = UDim2.new(0, 600, 0, 450)
             elseif self.MainFrame then
-                self.MainFrame.Size = UDim2.new(0, 500, 0, 0)
+                self.MainFrame.Size = UDim2.new(0, 600, 0, 0)
             end
         end
     end
@@ -733,9 +1237,9 @@ function Window:Minimize()
     if not self.MainFrame then return end
     
     self.IsMinimized = not self.IsMinimized
-    local targetSize = self.IsMinimized and UDim2.new(0, 500, 0, 40) or UDim2.new(0, 500, 0, 400)
+    local targetSize = self.IsMinimized and UDim2.new(0, 600, 0, 50) or UDim2.new(0, 600, 0, 450)
     
-    local tween = TweenService:Create(self.MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {
+    local tween = TweenService:Create(self.MainFrame, TweenInfo.new(DURATIONS.Normal, EASING.SmoothOut, Enum.EasingDirection.Out), {
         Size = targetSize
     })
     
@@ -756,39 +1260,64 @@ function Window:CreateTab(name, icon)
         Content = nil,
         Window = self,
         _connections = {},
-        _activeTweens = {}
+        _activeTweens = {},
+        Badge = nil
     }
     
     local theme = MODERN_THEMES[self.ThemeName]
     
+    -- Create tab button with proper layout
     local tabButton = Instance.new("TextButton")
     tabButton.Name = name .. "Tab"
-    tabButton.Size = UDim2.new(1, -8, 0, 40)
-    tabButton.Position = UDim2.new(0, 4, 0, 0)
+    tabButton.Size = UDim2.new(1, -SPACING.S * 2, 0, 44)
+    tabButton.Position = UDim2.new(0, SPACING.S, 0, 0)
     tabButton.BackgroundTransparency = 1
-    tabButton.Text = "  " .. name
-    tabButton.TextColor3 = theme.ON_SURFACE_VARIANT
-    tabButton.TextSize = 14
-    tabButton.Font = Enum.Font.SourceSansSemibold
-    tabButton.TextXAlignment = Enum.TextXAlignment.Left
+    tabButton.Text = ""
     tabButton.AutoButtonColor = false
     
     local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 6)
+    buttonCorner.CornerRadius = UDim.new(0, 8)
     buttonCorner.Parent = tabButton
     
+    -- Create layout for icon and text
+    local layout = Instance.new("Frame")
+    layout.Name = "Layout"
+    layout.Size = UDim2.new(1, -SPACING.M * 2, 1, 0)
+    layout.Position = UDim2.new(0, SPACING.M, 0, 0)
+    layout.BackgroundTransparency = 1
+    layout.Parent = tabButton
+    
+    local layoutList = Instance.new("UIListLayout")
+    layoutList.FillDirection = Enum.FillDirection.Horizontal
+    layoutList.Padding = UDim.new(0, SPACING.M)
+    layoutList.VerticalAlignment = Enum.VerticalAlignment.Center
+    layoutList.Parent = layout
+    
+    -- Add icon if provided
     if icon then
         local tabIcon = Instance.new("ImageLabel")
         tabIcon.Name = "Icon"
         tabIcon.Size = UDim2.new(0, 20, 0, 20)
-        tabIcon.Position = UDim2.new(0, 8, 0.5, -10)
         tabIcon.BackgroundTransparency = 1
         tabIcon.Image = FEATHER_ICONS[icon] or icon
         tabIcon.ImageColor3 = theme.ON_SURFACE_VARIANT
-        tabIcon.Parent = tabButton
-        tabButton.Text = "    " .. name
+        tabIcon.Parent = layout
     end
     
+    -- Add text label
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Name = "Text"
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = name
+    textLabel.TextColor3 = theme.ON_SURFACE_VARIANT
+    textLabel.TextSize = 14
+    textLabel.Font = Enum.Font.SourceSansSemibold
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    textLabel.TextTruncate = Enum.TextTruncate.AtEnd
+    textLabel.Parent = layout
+    
+    -- Create content frame
     local contentFrame = Instance.new("ScrollingFrame")
     contentFrame.Name = name .. "Content"
     contentFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -801,12 +1330,14 @@ function Window:CreateTab(name, icon)
     contentFrame.ScrollingDirection = Enum.ScrollingDirection.Y
     
     local contentLayout = Instance.new("UIListLayout")
+    contentLayout.Padding = UDim.new(0, SPACING.S)
     contentLayout.Parent = contentFrame
     
     local contentPadding = Instance.new("UIPadding")
-    contentPadding.PaddingTop = UDim.new(0, 8)
-    contentPadding.PaddingLeft = UDim.new(0, 8)
-    contentPadding.PaddingRight = UDim.new(0, 8)
+    contentPadding.PaddingTop = UDim.new(0, SPACING.M)
+    contentPadding.PaddingLeft = UDim.new(0, SPACING.M)
+    contentPadding.PaddingRight = UDim.new(0, SPACING.M)
+    contentPadding.PaddingBottom = UDim.new(0, SPACING.M)
     contentPadding.Parent = contentFrame
     
     tabButton.Parent = self.TabList
@@ -814,28 +1345,19 @@ function Window:CreateTab(name, icon)
     
     tab.Button = tabButton
     tab.Content = contentFrame
+    tab.TextLabel = textLabel
+    tab.Icon = icon and tabButton:FindFirstChild("Layout"):FindFirstChild("Icon")
     
     table.insert(self.Tabs, tab)
     
+    -- Apply hover effect to tab button
+    local cleanupHover = HoverEffect:Create(tabButton, {
+        HoverColor = theme.PRIMARY_CONTAINER,
+        ScaleAmount = 1.01
+    })
+    
     table.insert(tab._connections, tabButton.MouseButton1Click:Connect(function()
         self:SelectTab(tab)
-    end))
-    
-    table.insert(tab._connections, tabButton.MouseEnter:Connect(function()
-        if not tab.Content.Visible then
-            TweenService:Create(tabButton, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.9,
-                BackgroundColor3 = theme.PRIMARY
-            }):Play()
-        end
-    end))
-    
-    table.insert(tab._connections, tabButton.MouseLeave:Connect(function()
-        if not tab.Content.Visible then
-            TweenService:Create(tabButton, TweenInfo.new(0.2), {
-                BackgroundTransparency = 1
-            }):Play()
-        end
     end))
     
     if #self.Tabs == 1 then
@@ -859,7 +1381,7 @@ function Window:SelectTab(selectedTab)
 
     for _, tab in ipairs(self.Tabs) do
         if tab.Content.Visible then
-            local hideTween = TweenService:Create(tab.Content, TweenInfo.new(0.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {
+            local hideTween = TweenService:Create(tab.Content, TweenInfo.new(DURATIONS.Normal, EASING.SmoothOut, Enum.EasingDirection.Out), {
                 Position = UDim2.new(-0.1, 0, 0, 0)
             })
             
@@ -869,18 +1391,18 @@ function Window:SelectTab(selectedTab)
         end
         
         tab.Content.Visible = false
-        tab.Button.TextColor3 = MODERN_THEMES[self.ThemeName].ON_SURFACE_VARIANT
+        tab.TextLabel.TextColor3 = MODERN_THEMES[self.ThemeName].ON_SURFACE_VARIANT
         tab.Button.BackgroundTransparency = 1
         
-        if tab.Button:FindFirstChild("Icon") then
-            tab.Button.Icon.ImageColor3 = MODERN_THEMES[self.ThemeName].ON_SURFACE_VARIANT
+        if tab.Icon then
+            tab.Icon.ImageColor3 = MODERN_THEMES[self.ThemeName].ON_SURFACE_VARIANT
         end
     end
 
     selectedTab.Content.Visible = true
     selectedTab.Content.Position = UDim2.new(1.1, 0, 0, 0)
     
-    local showTween = TweenService:Create(selectedTab.Content, TweenInfo.new(0.3, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {
+    local showTween = TweenService:Create(selectedTab.Content, TweenInfo.new(DURATIONS.PageTransition, EASING.SmoothOut, Enum.EasingDirection.Out), {
         Position = UDim2.new(0, 0, 0, 0)
     })
     
@@ -888,12 +1410,12 @@ function Window:SelectTab(selectedTab)
     table.insert(selectedTab._activeTweens, showTween)
     showTween:Play()
 
-    selectedTab.Button.TextColor3 = MODERN_THEMES[self.ThemeName].PRIMARY
-    selectedTab.Button.BackgroundTransparency = 0.8
-    selectedTab.Button.BackgroundColor3 = MODERN_THEMES[self.ThemeName].PRIMARY
+    selectedTab.TextLabel.TextColor3 = MODERN_THEMES[self.ThemeName].PRIMARY
+    selectedTab.Button.BackgroundTransparency = 0.7
+    selectedTab.Button.BackgroundColor3 = MODERN_THEMES[self.ThemeName].PRIMARY_CONTAINER
     
-    if selectedTab.Button:FindFirstChild("Icon") then
-        selectedTab.Button.Icon.ImageColor3 = MODERN_THEMES[self.ThemeName].PRIMARY
+    if selectedTab.Icon then
+        selectedTab.Icon.ImageColor3 = MODERN_THEMES[self.ThemeName].PRIMARY
     end
 end
 
@@ -905,9 +1427,9 @@ function Window:CreateButton(tab, options)
     local button = Instance.new("TextButton")
     button.Name = options.Name or "Button"
     if Nebula_Internal.IsMobile then
-        button.Size = UDim2.new(1, -20, 0, MOBILE_SETTINGS.ELEMENT_HEIGHT)
+        button.Size = UDim2.new(1, -SPACING.M * 2, 0, MOBILE_SETTINGS.ELEMENT_HEIGHT)
     else
-        button.Size = UDim2.new(1, -20, 0, 36)
+        button.Size = UDim2.new(1, -SPACING.M * 2, 0, 44)
     end
     button.BackgroundColor3 = theme.PRIMARY
     button.TextColor3 = theme.ON_PRIMARY
@@ -917,42 +1439,52 @@ function Window:CreateButton(tab, options)
     button.AutoButtonColor = false
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, MOBILE_SETTINGS.CORNER_RADIUS)
+    corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = button
     
+    -- Apply modern hover effect
+    HoverEffect:Create(button, {
+        HoverColor = theme.PRIMARY_LIGHT,
+        ScaleAmount = 1.02
+    })
+    
     if options.Icon then
+        local layout = Instance.new("Frame")
+        layout.Name = "Layout"
+        layout.Size = UDim2.new(1, -SPACING.M * 2, 1, 0)
+        layout.Position = UDim2.new(0, SPACING.M, 0, 0)
+        layout.BackgroundTransparency = 1
+        layout.Parent = button
+        
+        local layoutList = Instance.new("UIListLayout")
+        layoutList.FillDirection = Enum.FillDirection.Horizontal
+        layoutList.Padding = UDim.new(0, SPACING.S)
+        layoutList.VerticalAlignment = Enum.VerticalAlignment.Center
+        layoutList.Parent = layout
+        
         local icon = Instance.new("ImageLabel")
         icon.Name = "Icon"
         icon.Size = UDim2.new(0, 20, 0, 20)
-        icon.Position = UDim2.new(0, 8, 0.5, -10)
         icon.BackgroundTransparency = 1
         icon.Image = FEATHER_ICONS[options.Icon] or options.Icon
         icon.ImageColor3 = theme.ON_PRIMARY
-        icon.Parent = button
-        button.Text = "    " .. button.Text
+        icon.Parent = layout
+        
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Name = "Text"
+        textLabel.Size = UDim2.new(1, -20, 1, 0)
+        textLabel.BackgroundTransparency = 1
+        textLabel.Text = options.Name or "Button"
+        textLabel.TextColor3 = theme.ON_PRIMARY
+        textLabel.TextSize = Nebula_Internal.IsMobile and MOBILE_SETTINGS.FONT_SIZE_MEDIUM or 14
+        textLabel.Font = Enum.Font.SourceSansSemibold
+        textLabel.TextXAlignment = Enum.TextXAlignment.Left
+        textLabel.Parent = layout
+        
+        button.Text = ""
     end
-    
-    local function createRipple(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            RippleEffect:CreateRipple(button, input.Position)
-        end
-    end
-    
-    ConnectionTracker:Track(button.MouseEnter:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = theme.PRIMARY_LIGHT
-        }):Play()
-    end))
-    
-    ConnectionTracker:Track(button.MouseLeave:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {
-            BackgroundColor3 = theme.PRIMARY
-        }):Play()
-    end))
     
     if options.Callback then
-        ConnectionTracker:Track(button.InputBegan:Connect(createRipple))
-        
         ConnectionTracker:Track(button.MouseButton1Click:Connect(function()
             local success, result = pcall(options.Callback)
             if not success then
@@ -973,9 +1505,9 @@ function Window:CreateToggle(tab, options)
     local toggleContainer = Instance.new("Frame")
     toggleContainer.Name = options.Name or "Toggle"
     if Nebula_Internal.IsMobile then
-        toggleContainer.Size = UDim2.new(1, -20, 0, MOBILE_SETTINGS.ELEMENT_HEIGHT)
+        toggleContainer.Size = UDim2.new(1, -SPACING.M * 2, 0, MOBILE_SETTINGS.ELEMENT_HEIGHT)
     else
-        toggleContainer.Size = UDim2.new(1, -20, 0, 36)
+        toggleContainer.Size = UDim2.new(1, -SPACING.M * 2, 0, 44)
     end
     toggleContainer.BackgroundTransparency = 1
     
@@ -992,8 +1524,8 @@ function Window:CreateToggle(tab, options)
     
     local toggleSwitch = Instance.new("TextButton")
     toggleSwitch.Name = "Switch"
-    toggleSwitch.Size = UDim2.new(0, 40, 0, 20)
-    toggleSwitch.Position = UDim2.new(1, -50, 0.5, -10)
+    toggleSwitch.Size = UDim2.new(0, 48, 0, 24)
+    toggleSwitch.Position = UDim2.new(1, -56, 0.5, -12)
     toggleSwitch.BackgroundColor3 = theme.OUTLINE
     toggleSwitch.BorderSizePixel = 0
     toggleSwitch.AutoButtonColor = false
@@ -1005,7 +1537,7 @@ function Window:CreateToggle(tab, options)
     
     local toggleThumb = Instance.new("Frame")
     toggleThumb.Name = "Thumb"
-    toggleThumb.Size = UDim2.new(0, 16, 0, 16)
+    toggleThumb.Size = UDim2.new(0, 20, 0, 20)
     toggleThumb.Position = UDim2.new(0, 2, 0, 2)
     toggleThumb.BackgroundColor3 = theme.SURFACE
     toggleThumb.BorderSizePixel = 0
@@ -1017,13 +1549,19 @@ function Window:CreateToggle(tab, options)
     
     toggleSwitch.Parent = toggleContainer
     
+    -- Apply hover effect to toggle switch
+    HoverEffect:Create(toggleSwitch, {
+        HoverColor = theme.PRIMARY_CONTAINER,
+        ScaleAmount = 1.05
+    })
+    
     local isToggled = options.CurrentValue or false
     if options.Flag then
         isToggled = ConfigurationSystem:GetFlag(options.Flag, isToggled)
     end
     
     local function updateToggle()
-        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
+        local tweenInfo = TweenInfo.new(DURATIONS.Normal, EASING.SmoothOut, Enum.EasingDirection.Out)
         
         local colorTween = TweenService:Create(toggleSwitch, tweenInfo, {
             BackgroundColor3 = isToggled and theme.PRIMARY or theme.OUTLINE
@@ -1032,7 +1570,7 @@ function Window:CreateToggle(tab, options)
         colorTween:Play()
         
         local positionTween = TweenService:Create(toggleThumb, tweenInfo, {
-            Position = isToggled and UDim2.new(1, -18, 0, 2) or UDim2.new(0, 2, 0, 2)
+            Position = isToggled and UDim2.new(1, -22, 0, 2) or UDim2.new(0, 2, 0, 2)
         })
         TweenManager:Track(positionTween)
         positionTween:Play()
@@ -1052,7 +1590,6 @@ function Window:CreateToggle(tab, options)
     ConnectionTracker:Track(toggleSwitch.MouseButton1Click:Connect(function()
         isToggled = not isToggled
         updateToggle()
-        RippleEffect:CreateRipple(toggleSwitch, Vector2.new(toggleSwitch.AbsolutePosition.X + toggleSwitch.AbsoluteSize.X/2, toggleSwitch.AbsolutePosition.Y + toggleSwitch.AbsoluteSize.Y/2))
     end))
     
     updateToggle()
@@ -1077,9 +1614,9 @@ function Window:CreateSlider(tab, options)
     local sliderContainer = Instance.new("Frame")
     sliderContainer.Name = options.Name or "Slider"
     if Nebula_Internal.IsMobile then
-        sliderContainer.Size = UDim2.new(1, -20, 0, 70)
+        sliderContainer.Size = UDim2.new(1, -SPACING.M * 2, 0, 80)
     else
-        sliderContainer.Size = UDim2.new(1, -20, 0, 60)
+        sliderContainer.Size = UDim2.new(1, -SPACING.M * 2, 0, 70)
     end
     sliderContainer.BackgroundTransparency = 1
     
@@ -1108,8 +1645,8 @@ function Window:CreateSlider(tab, options)
     
     local track = Instance.new("Frame")
     track.Name = "Track"
-    track.Size = UDim2.new(1, 0, 0, 4)
-    track.Position = UDim2.new(0, 0, 0, 30)
+    track.Size = UDim2.new(1, 0, 0, 6)
+    track.Position = UDim2.new(0, 0, 0, 40)
     track.BackgroundColor3 = theme.OUTLINE
     track.BorderSizePixel = 0
     
@@ -1130,8 +1667,8 @@ function Window:CreateSlider(tab, options)
     
     local thumb = Instance.new("Frame")
     thumb.Name = "Thumb"
-    thumb.Size = UDim2.new(0, 16, 0, 16)
-    thumb.Position = UDim2.new(0, -8, 0.5, -8)
+    thumb.Size = UDim2.new(0, 18, 0, 18)
+    thumb.Position = UDim2.new(0, -9, 0.5, -9)
     thumb.BackgroundColor3 = theme.PRIMARY
     thumb.BorderSizePixel = 0
     
@@ -1141,6 +1678,12 @@ function Window:CreateSlider(tab, options)
     thumb.Parent = track
     
     track.Parent = sliderContainer
+    
+    -- Apply hover effect to thumb
+    HoverEffect:Create(thumb, {
+        HoverColor = theme.PRIMARY_LIGHT,
+        ScaleAmount = 1.2
+    })
     
     local minValue = options.Range[1]
     local maxValue = options.Range[2]
@@ -1158,7 +1701,7 @@ function Window:CreateSlider(tab, options)
         
         local percentage = (currentValue - minValue) / (maxValue - minValue)
         fill.Size = UDim2.new(percentage, 0, 1, 0)
-        thumb.Position = UDim2.new(percentage, -8, 0.5, -8)
+        thumb.Position = UDim2.new(percentage, -9, 0.5, -9)
         valueLabel.Text = tostring(currentValue) .. (options.Suffix or "")
         
         if options.Callback then
@@ -1225,9 +1768,9 @@ function Window:CreateInput(tab, options)
     local inputContainer = Instance.new("Frame")
     inputContainer.Name = options.Name or "Input"
     if Nebula_Internal.IsMobile then
-        inputContainer.Size = UDim2.new(1, -20, 0, MOBILE_SETTINGS.ELEMENT_HEIGHT)
+        inputContainer.Size = UDim2.new(1, -SPACING.M * 2, 0, MOBILE_SETTINGS.ELEMENT_HEIGHT)
     else
-        inputContainer.Size = UDim2.new(1, -20, 0, 36)
+        inputContainer.Size = UDim2.new(1, -SPACING.M * 2, 0, 44)
     end
     inputContainer.BackgroundTransparency = 1
     
@@ -1244,23 +1787,29 @@ function Window:CreateInput(tab, options)
     textBox.PlaceholderColor3 = theme.ON_SURFACE_VARIANT
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, MOBILE_SETTINGS.CORNER_RADIUS)
+    corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = textBox
     
     local padding = Instance.new("UIPadding")
-    padding.PaddingLeft = UDim.new(0, 8)
-    padding.PaddingRight = UDim.new(0, 8)
+    padding.PaddingLeft = UDim.new(0, SPACING.M)
+    padding.PaddingRight = UDim.new(0, SPACING.M)
     padding.Parent = textBox
     
+    -- Apply hover effect to textbox
+    HoverEffect:Create(textBox, {
+        HoverColor = theme.SURFACE,
+        ScaleAmount = 1.01
+    })
+    
     ConnectionTracker:Track(textBox.Focused:Connect(function()
-        TweenService:Create(textBox, TweenInfo.new(0.2), {
+        TweenService:Create(textBox, TweenInfo.new(DURATIONS.Fast, EASING.SmoothOut), {
             BackgroundColor3 = theme.SURFACE,
             TextColor3 = theme.ON_SURFACE
         }):Play()
     end))
     
     ConnectionTracker:Track(textBox.FocusLost:Connect(function(enterPressed)
-        TweenService:Create(textBox, TweenInfo.new(0.2), {
+        TweenService:Create(textBox, TweenInfo.new(DURATIONS.Fast, EASING.SmoothOut), {
             BackgroundColor3 = theme.SURFACE_VARIANT,
             TextColor3 = theme.ON_SURFACE
         }):Play()
@@ -1295,6 +1844,34 @@ function Window:CreateInput(tab, options)
             textBox:CaptureFocus()
         end
     }
+end
+
+function Window:ShowLoading(options)
+    options = options or {}
+    local message = options.Message or "Loading..."
+    local showProgress = options.ShowProgress or false
+    
+    if self.LoadingOverlay then
+        self.LoadingOverlay:SetMessage(message)
+        if showProgress and options.Progress then
+            self.LoadingOverlay:SetProgress(options.Progress)
+        end
+        return self.LoadingOverlay
+    end
+    
+    self.LoadingOverlay = LoadingUI:CreateLoadingOverlay(self.MainFrame, {
+        Message = message,
+        ShowProgress = showProgress
+    })
+    
+    return self.LoadingOverlay
+end
+
+function Window:HideLoading()
+    if self.LoadingOverlay then
+        self.LoadingOverlay:Destroy()
+        self.LoadingOverlay = nil
+    end
 end
 
 function Window:Cleanup()
